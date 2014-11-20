@@ -41,9 +41,11 @@ func (g *Gorilla) Start() {
         }
 
         cputime := new (CPUTime)
+        memoryusage := new (MemoryUsage)
 
         for i := 0 ; i < 1000 ; i++ {
                 cputime.Report(reporter)
+                memoryusage.Report(reporter)
                 time.Sleep(5 * time.Second)
         }
 }
