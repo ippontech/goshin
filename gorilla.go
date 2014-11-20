@@ -42,10 +42,12 @@ func (g *Gorilla) Start() {
 
         cputime := new (CPUTime)
         memoryusage := new (MemoryUsage)
+        loadaverage := new (LoadAverage)
 
         for i := 0 ; i < 1000 ; i++ {
                 cputime.Report(reporter)
                 memoryusage.Report(reporter)
+                loadaverage.Report(reporter)
                 time.Sleep(5 * time.Second)
         }
 }
