@@ -32,17 +32,24 @@ func (g *Gorilla) Start() {
         reporter := func (metric *Metric) {
 
                 c := goryman.NewGorymanClient(g.Address)
-                c.Connect()
+                err := c.Connect()
+                if err == nil {
+                        err := c.SendEvent(&goryman.Event{
+                                Metric: metric.value,
+                                Ttl: float32(g.Ttl),
+                                Host: g.EventHost,
+                                Service: metric.service,
+                                Description: metric.description,
+                                State: "ok"})
 
-                c.SendEvent(&goryman.Event{
-                        Metric: metric.value,
-                        Ttl: float32(g.Ttl),
-                        Host: g.EventHost,
-                        Service: metric.service,
-                        Description: metric.description,
-                        State: "ok"})
+                        if err != nil {
+                                fmt.Println("wtf?")
+                        }
 
-                defer c.Close()
+                        defer c.Close()
+                } else {
+                        panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
+                }
         }
 
         cputime := new (CPUTime)
