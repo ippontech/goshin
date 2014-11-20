@@ -15,6 +15,10 @@ type Metric struct {
 type Gorilla struct {
         Address string
         CheckCPU bool
+        EventHost string
+        Interval int
+        Tag string
+        Ttl float64
 }
 
 func Instance() *Gorilla {
@@ -23,7 +27,7 @@ func Instance() *Gorilla {
 
 
 func (g *Gorilla) Start() {
-        fmt.Print("Gare aux gorillllles!\n")
+        fmt.Print("Gare aux goriiillllleeeees!\n")
 
         reporter := func (metric *Metric) {
 
@@ -32,7 +36,8 @@ func (g *Gorilla) Start() {
 
                 c.SendEvent(&goryman.Event{
                         Metric: metric.value,
-                        Ttl: 10,
+                        Ttl: float32(g.Ttl),
+                        Host: g.EventHost,
                         Service: metric.service,
                         Description: metric.description,
                         State: "ok"})
@@ -48,6 +53,6 @@ func (g *Gorilla) Start() {
                 cputime.Report(reporter)
                 memoryusage.Report(reporter)
                 loadaverage.Report(reporter)
-                time.Sleep(5 * time.Second)
+                time.Sleep(time.Duration(g.Interval) * time.Second)
         }
 }
