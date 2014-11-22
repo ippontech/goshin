@@ -21,7 +21,7 @@ func (l* LoadAverage) Ranking() string {
         return fmt.Sprintf("1-minute load average/core is %f", l.last1m)
 }
 
-func (l* LoadAverage) Report(f func(*Metric)) {
+func (l* LoadAverage) Report(metricQueue chan *Metric){
 
         metric := new(Metric)
 
@@ -29,5 +29,5 @@ func (l* LoadAverage) Report(f func(*Metric)) {
         metric.value = l.Usage()
         metric.description = l.Ranking()
 
-        f(metric)
+        metricQueue <- metric
 }

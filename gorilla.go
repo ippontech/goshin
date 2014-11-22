@@ -29,37 +29,62 @@ func Instance() *Gorilla {
 func (g *Gorilla) Start() {
         fmt.Print("Gare aux goriiillllleeeees!\n")
 
-        reporter := func (metric *Metric) {
+
+        cputime := new (CPUTime)
+        memoryusage := new (MemoryUsage)
+        loadaverage := new (LoadAverage)
+
+        var metricQueue chan *Metric = make(chan *Metric, 10)
+
+
+        go g.Report(metricQueue)
+
+
+        ticker := time.NewTicker(time.Second * 5)
+
+        for t:= range ticker.C {
+                fmt.Println("Tick at ", t)
+                go cputime.Report(metricQueue)
+                go memoryusage.Report(metricQueue)
+                go loadaverage.Report(metricQueue)
+        }
+}
+
+
+func (g *Gorilla) Report(metricQueue chan *Metric) {
+
+        buffer := make([]*Metric, 3)
+
+        for {
+
+                for index, _ := range buffer {
+                        buffer[index] = <- metricQueue
+                }
 
                 c := goryman.NewGorymanClient(g.Address)
                 err := c.Connect()
                 if err == nil {
-                        err := c.SendEvent(&goryman.Event{
-                                Metric: metric.value,
-                                Ttl: float32(g.Ttl),
-                                Host: g.EventHost,
-                                Service: metric.service,
-                                Description: metric.description,
-                                State: "ok"})
 
-                        if err != nil {
-                                fmt.Println("wtf?")
+                        fmt.Println("Send Riemann events")
+
+                        for _, metric := range buffer {
+                                err := c.SendEvent(&goryman.Event{
+                                        Metric: metric.value,
+                                        Ttl: float32(g.Ttl),
+                                        Host: g.EventHost,
+                                        Service: metric.service,
+                                        Description: metric.description,
+                                        State: "ok"})
+
+                                if err != nil {
+                                        fmt.Println("wtf?")
+                                }
+
                         }
 
                         defer c.Close()
                 } else {
                         panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
                 }
-        }
-
-        cputime := new (CPUTime)
-        memoryusage := new (MemoryUsage)
-        loadaverage := new (LoadAverage)
-
-        for i := 0 ; i < 1000 ; i++ {
-                go cputime.Report(reporter)
-                go memoryusage.Report(reporter)
-                go loadaverage.Report(reporter)
-                time.Sleep(time.Duration(g.Interval) * time.Second)
         }
 }

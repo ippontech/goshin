@@ -8,6 +8,7 @@ import linuxproc "github.com/c9s/goprocinfo/linux"
 
 type CPUTime struct {
         last, actual linuxproc.CPUStat
+        MetricCollector
 }
 
 func (c *CPUTime) Store() {
@@ -39,7 +40,7 @@ func (c* CPUTime) Ranking() string {
        return fmt.Sprint("user+nice+system\n\n", s)
 }
 
-func (c* CPUTime) Report(f func(*Metric)) {
+func (c* CPUTime) Report(metricQueue chan *Metric) {
         c.Store()
         m := new(Metric)
 
@@ -47,5 +48,6 @@ func (c* CPUTime) Report(f func(*Metric)) {
         m.value = c.Usage()
         m.description = c.Ranking()
 
-        f(m)
+        metricQueue <- m
+
 }
