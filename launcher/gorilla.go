@@ -4,19 +4,23 @@ import "github.com/pariviere/gorilla"
 import "flag"
 import "fmt"
 import "os"
+import "github.com/vharitonsky/iniflags"
+
+
+var (
+        hostname,_ = os.Hostname()
+
+        hostPtr = flag.String("host", "localhost", "Riemann host")
+        portPtr = flag.Int("port", 5555, "Riemann port")
+        eventHostPtr = flag.String("event_host",  hostname, "Event hostname")
+        intervalPtr = flag.Int("interval", 5, "Seconds between updates")
+        tagPtr = flag.String("tag", "", "Tag to add to events")
+        ttlPtr = flag.Float64("ttl", 10, "TTL for events")
+)
 
 func main() {
 
-        hostname,_ := os.Hostname()
-
-        hostPtr := flag.String("host", "localhost", "Riemann host")
-        portPtr := flag.Int("port", 5555, "Riemann port")
-        eventHostPtr := flag.String("event_host",  hostname, "Event hostname")
-        intervalPtr := flag.Int("interval", 5, "Seconds between updates")
-        tagPtr := flag.String("tag", "", "Tag to add to events")
-        ttlPtr := flag.Float64("ttl", 10, "TTL for events")
-
-        flag.Parse()
+        iniflags.Parse()
 
         gorilla := gorilla.Instance()
 
