@@ -8,7 +8,6 @@ import linuxproc "github.com/c9s/goprocinfo/linux"
 
 type CPUTime struct {
         last, actual linuxproc.CPUStat
-        MetricCollector
 }
 
 func (c *CPUTime) Store() {
