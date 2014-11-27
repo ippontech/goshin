@@ -25,7 +25,7 @@ func (m* MemoryUsage) Ranking() string {
        return fmt.Sprint("used\n\n", s)
 }
 
-func (m* MemoryUsage) Report(metricQueue chan *Metric)  {
+func (m* MemoryUsage) Report(f func(*Metric))  {
 
         metric := new(Metric)
 
@@ -33,5 +33,5 @@ func (m* MemoryUsage) Report(metricQueue chan *Metric)  {
         metric.value = m.Usage()
         metric.description = m.Ranking()
 
-        metricQueue <- metric
+        f(metric)
 }

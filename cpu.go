@@ -39,7 +39,7 @@ func (c* CPUTime) Ranking() string {
        return fmt.Sprint("user+nice+system\n\n", s)
 }
 
-func (c* CPUTime) Report(metricQueue chan *Metric) {
+func (c* CPUTime) Report(f func(*Metric)) {
         c.Store()
         m := new(Metric)
 
@@ -47,6 +47,5 @@ func (c* CPUTime) Report(metricQueue chan *Metric) {
         m.value = c.Usage()
         m.description = c.Ranking()
 
-        metricQueue <- m
-
+        f(m)
 }

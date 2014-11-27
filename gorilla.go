@@ -33,58 +33,66 @@ func (g *Gorilla) Start() {
         cputime := new (CPUTime)
         memoryusage := new (MemoryUsage)
         loadaverage := new (LoadAverage)
+        netstats := NewNetStats()
 
-        var metricQueue chan *Metric = make(chan *Metric, 10)
+ //       var metricQueue chan *Metric = make(chan *Metric, 1)
+
+        c := goryman.NewGorymanClient(g.Address)
+        c.Connect()
+        reporter := func (metric *Metric) {
 
 
-        go g.Report(metricQueue)
+                c.SendEvent(&goryman.Event{
+                        Metric: metric.value,
+                        Ttl: 10,
+                        Service: metric.service,
+                        Description: metric.description,
+                        State: "ok"})
+
+//                defer c.Close()
+        }
 
 
-        ticker := time.NewTicker(time.Second * 5)
+        ticker := time.NewTicker(time.Second * 2)
 
-        for t:= range ticker.C {
+        for  t:= range ticker.C {
                 fmt.Println("Tick at ", t)
-                go cputime.Report(metricQueue)
-                go memoryusage.Report(metricQueue)
-                go loadaverage.Report(metricQueue)
+                go cputime.Report(reporter)
+                go memoryusage.Report(reporter)
+                go loadaverage.Report(reporter)
+                go netstats.Report(reporter)
         }
 }
 
 
 func (g *Gorilla) Report(metricQueue chan *Metric) {
 
-        buffer := make([]*Metric, 3)
+        c := goryman.NewGorymanClient(g.Address)
+        err := c.Connect()
+        if err != nil {
+                panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
+        }
+
 
         for {
+                metric := <- metricQueue
 
-                for index, _ := range buffer {
-                        buffer[index] = <- metricQueue
-                }
+                go send(c, metric)
+        }
+}
 
-                c := goryman.NewGorymanClient(g.Address)
-                err := c.Connect()
-                if err == nil {
+func send(c *goryman.GorymanClient, metric *Metric) {
 
-                        fmt.Println("Send Riemann events")
+        //fmt.Println("Send metric : ", metric)
+        err := c.SendEvent(&goryman.Event{
+                Metric: metric.value,
+                Ttl: 10,
+                Service: metric.service,
+                Description: metric.description,
+                State: "ok"})
 
-                        for _, metric := range buffer {
-                                err := c.SendEvent(&goryman.Event{
-                                        Metric: metric.value,
-                                        Ttl: float32(g.Ttl),
-                                        Host: g.EventHost,
-                                        Service: metric.service,
-                                        Description: metric.description,
-                                        State: "ok"})
 
-                                if err != nil {
-                                        fmt.Println("wtf?")
-                                }
-
-                        }
-
-                        defer c.Close()
-                } else {
-                        panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
-                }
+        if err != nil {
+                fmt.Println("wtf?")
         }
 }
