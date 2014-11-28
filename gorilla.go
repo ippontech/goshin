@@ -17,7 +17,7 @@ type Gorilla struct {
 	EventHost    string
 	Interval     int
 	Tag          []string
-	Ttl          float64
+	Ttl          float32
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
 }
@@ -44,10 +44,11 @@ func (g *Gorilla) Start() {
 		} else {
 			c.SendEvent(&goryman.Event{
 				Metric:      metric.value,
-				Ttl:         10,
+				Ttl:         g.Ttl,
 				Service:     metric.service,
 				Description: metric.description,
 				Tags:        g.Tag,
+				Host:        g.EventHost,
 				State:       "ok"})
 		}
 

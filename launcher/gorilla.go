@@ -34,7 +34,7 @@ func main() {
 		gorilla.Tag = strings.Split(*tagPtr, ",")
 	}
 
-	gorilla.Ttl = *ttlPtr
+	gorilla.Ttl = float32(*ttlPtr)
 
 	ifaces := make(map[string]bool)
 
