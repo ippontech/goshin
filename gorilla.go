@@ -1,98 +1,93 @@
 package gorilla
 
 import (
-        "fmt"
-        "time"
-        "github.com/bigdatadev/goryman"
-    )
-
+	"fmt"
+	"github.com/bigdatadev/goryman"
+	"time"
+)
 
 type Metric struct {
-        service, description string
-        value interface {}
+	service, description string
+	value                interface{}
 }
 
 type Gorilla struct {
-        Address string
-        CheckCPU bool
-        EventHost string
-        Interval int
-        Tag string
-        Ttl float64
+	Address   string
+	CheckCPU  bool
+	EventHost string
+	Interval  int
+	Tag       string
+	Ttl       float64
 }
 
 func Instance() *Gorilla {
-        return &Gorilla{}
+	return &Gorilla{}
 }
-
 
 func (g *Gorilla) Start() {
-        fmt.Print("Gare aux goriiillllleeeees!\n")
+	fmt.Print("Gare aux goriiillllleeeees!\n")
 
+	cputime := new(CPUTime)
+	memoryusage := new(MemoryUsage)
+	loadaverage := new(LoadAverage)
+	netstats := NewNetStats()
 
-        cputime := new (CPUTime)
-        memoryusage := new (MemoryUsage)
-        loadaverage := new (LoadAverage)
-        netstats := NewNetStats()
+	reporter := func(metric *Metric) {
 
- //       var metricQueue chan *Metric = make(chan *Metric, 1)
+		c := goryman.NewGorymanClient(g.Address)
+		err := c.Connect()
 
-        c := goryman.NewGorymanClient(g.Address)
-        c.Connect()
-        reporter := func (metric *Metric) {
+		if err != nil {
+			fmt.Println("can not connect to host")
+		} else {
+			c.SendEvent(&goryman.Event{
+				Metric:      metric.value,
+				Ttl:         10,
+				Service:     metric.service,
+				Description: metric.description,
+				State:       "ok"})
+		}
 
+		defer c.Close()
+	}
 
-                c.SendEvent(&goryman.Event{
-                        Metric: metric.value,
-                        Ttl: 10,
-                        Service: metric.service,
-                        Description: metric.description,
-                        State: "ok"})
+	ticker := time.NewTicker(time.Second * 2)
 
-//                defer c.Close()
-        }
-
-
-        ticker := time.NewTicker(time.Second * 2)
-
-        for  t:= range ticker.C {
-                fmt.Println("Tick at ", t)
-                go cputime.Report(reporter)
-                go memoryusage.Report(reporter)
-                go loadaverage.Report(reporter)
-                go netstats.Report(reporter)
-        }
+	for t := range ticker.C {
+		fmt.Println("Tick at ", t)
+		go cputime.Report(reporter)
+		go memoryusage.Report(reporter)
+		go loadaverage.Report(reporter)
+		go netstats.Report(reporter)
+	}
 }
-
 
 func (g *Gorilla) Report(metricQueue chan *Metric) {
 
-        c := goryman.NewGorymanClient(g.Address)
-        err := c.Connect()
-        if err != nil {
-                panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
-        }
+	c := goryman.NewGorymanClient(g.Address)
+	err := c.Connect()
+	if err != nil {
+		panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
+	}
 
+	for {
+		metric := <-metricQueue
 
-        for {
-                metric := <- metricQueue
-
-                go send(c, metric)
-        }
+		go send(c, metric)
+	}
 }
 
 func send(c *goryman.GorymanClient, metric *Metric) {
 
-        //fmt.Println("Send metric : ", metric)
-        err := c.SendEvent(&goryman.Event{
-                Metric: metric.value,
-                Ttl: 10,
-                Service: metric.service,
-                Description: metric.description,
-                State: "ok"})
+	//fmt.Println("Send metric : ", metric)
+	err := c.SendEvent(&goryman.Event{
+		Metric:      metric.value,
+		Ttl:         10,
+		Service:     metric.service,
+		Description: metric.description,
+		State:       "ok"})
 
-
-        if err != nil {
-                fmt.Println("wtf?")
-        }
+	if err != nil {
+		fmt.Println("wtf?")
+	}
 }
