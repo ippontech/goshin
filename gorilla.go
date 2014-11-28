@@ -61,33 +61,3 @@ func (g *Gorilla) Start() {
 		go netstats.Report(reporter)
 	}
 }
-
-func (g *Gorilla) Report(metricQueue chan *Metric) {
-
-	c := goryman.NewGorymanClient(g.Address)
-	err := c.Connect()
-	if err != nil {
-		panic(fmt.Sprintf("Can not open connection to Riemann %s. Check your configuration.", g.Address))
-	}
-
-	for {
-		metric := <-metricQueue
-
-		go send(c, metric)
-	}
-}
-
-func send(c *goryman.GorymanClient, metric *Metric) {
-
-	//fmt.Println("Send metric : ", metric)
-	err := c.SendEvent(&goryman.Event{
-		Metric:      metric.value,
-		Ttl:         10,
-		Service:     metric.service,
-		Description: metric.description,
-		State:       "ok"})
-
-	if err != nil {
-		fmt.Println("wtf?")
-	}
-}
