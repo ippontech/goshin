@@ -12,12 +12,14 @@ type Metric struct {
 }
 
 type Gorilla struct {
-	Address   string
-	CheckCPU  bool
-	EventHost string
-	Interval  int
-	Tag       string
-	Ttl       float64
+	Address      string
+	CheckCPU     bool
+	EventHost    string
+	Interval     int
+	Tag          []string
+	Ttl          float64
+	Ifaces       map[string]bool
+	IgnoreIfaces map[string]bool
 }
 
 func Instance() *Gorilla {
@@ -25,12 +27,12 @@ func Instance() *Gorilla {
 }
 
 func (g *Gorilla) Start() {
-	fmt.Print("Gare aux goriiillllleeeees!\n")
+	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
 
 	cputime := new(CPUTime)
 	memoryusage := new(MemoryUsage)
 	loadaverage := new(LoadAverage)
-	netstats := NewNetStats()
+	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 
 	reporter := func(metric *Metric) {
 
@@ -45,13 +47,15 @@ func (g *Gorilla) Start() {
 				Ttl:         10,
 				Service:     metric.service,
 				Description: metric.description,
+				Tags:        g.Tag,
 				State:       "ok"})
 		}
 
 		defer c.Close()
 	}
 
-	ticker := time.NewTicker(time.Second * 2)
+	fmt.Printf("Gorilla will report each %d seconds\n", g.Interval)
+	ticker := time.NewTicker(time.Second * time.Duration(g.Interval))
 
 	for t := range ticker.C {
 		fmt.Println("Tick at ", t)

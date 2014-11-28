@@ -9,6 +9,7 @@ import linuxproc "github.com/c9s/goprocinfo/linux"
 type NetStats struct {
 	last, actual         map[string]linuxproc.NetworkStat
 	lastTime, actualTime time.Time
+	ignoreIfaces, ifaces map[string]bool
 }
 
 func (n *NetStats) Store() {
@@ -44,6 +45,29 @@ func buildMetric(iface string, name string, actual uint64, last uint64, interval
 	return m
 }
 
+func (n *NetStats) candidateIfaces() []string {
+
+	keys := make([]string, 0, len(n.actual))
+
+	for k, _ := range n.actual {
+		_, include := n.ifaces[k]
+		_, exclude := n.ignoreIfaces[k]
+
+		if len(n.ifaces) != 0 {
+			if include && !exclude {
+				keys = append(keys, k)
+			}
+		} else {
+			if !exclude {
+				keys = append(keys, k)
+			}
+		}
+
+	}
+
+	return keys
+}
+
 func (n *NetStats) Report(f func(*Metric)) {
 	n.Store()
 
@@ -55,9 +79,10 @@ func (n *NetStats) Report(f func(*Metric)) {
 
 	interval := float64(n.actualTime.Sub(n.lastTime).Seconds())
 
-	for ifaceName, actualStat := range n.actual {
+	for _, ifaceName := range n.candidateIfaces() {
 
 		lastStat := n.last[ifaceName]
+		actualStat := n.actual[ifaceName]
 
 		f(buildMetric(ifaceName, "rx bytes", actualStat.RxBytes, lastStat.RxBytes, interval))
 		f(buildMetric(ifaceName, "rx packets", actualStat.RxPackets, lastStat.RxPackets, interval))
@@ -80,8 +105,11 @@ func (n *NetStats) Report(f func(*Metric)) {
 }
 
 // Act as constructor
-func NewNetStats() *NetStats {
+func NewNetStats(ifaces, ignoreIfaces map[string]bool) *NetStats {
 	return &NetStats{
-		last:   make(map[string]linuxproc.NetworkStat),
-		actual: make(map[string]linuxproc.NetworkStat)}
+		last:         make(map[string]linuxproc.NetworkStat),
+		actual:       make(map[string]linuxproc.NetworkStat),
+		ignoreIfaces: ignoreIfaces,
+		ifaces:       ifaces,
+	}
 }
