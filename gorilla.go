@@ -31,7 +31,7 @@ func (g *Gorilla) Start() {
 
 	cputime := NewCPUTime()
 	memoryusage := NewMemoryUsage()
-	loadaverage := new(LoadAverage)
+	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 
 	reporter := func(metric *Metric) {

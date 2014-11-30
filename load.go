@@ -32,3 +32,7 @@ func (l *LoadAverage) Report(f func(*Metric)) {
 
 	f(metric)
 }
+
+func NewLoadAverage() *LoadAverage {
+        return &LoadAverage{}
+}
