@@ -22,7 +22,8 @@ type Gorilla struct {
 	IgnoreIfaces map[string]bool
 }
 
-func Instance() *Gorilla {
+
+func NewGorilla() *Gorilla {
 	return &Gorilla{}
 }
 

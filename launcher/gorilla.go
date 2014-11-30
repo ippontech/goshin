@@ -24,7 +24,7 @@ func main() {
 
 	iniflags.Parse()
 
-	gorilla := gorilla.Instance()
+	gorilla := gorilla.NewGorilla()
 
 	gorilla.Address = fmt.Sprintf("%s:%d", *hostPtr, *portPtr)
 	gorilla.EventHost = *eventHostPtr
