@@ -49,3 +49,7 @@ func (c *CPUTime) Report(f func(*Metric)) {
 
 	f(m)
 }
+
+func NewCPUTime() *CPUTime {
+	return &CPUTime {}
+}

@@ -29,7 +29,7 @@ func Instance() *Gorilla {
 func (g *Gorilla) Start() {
 	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
 
-	cputime := new(CPUTime)
+	cputime := NewCPUTime()
 	memoryusage := new(MemoryUsage)
 	loadaverage := new(LoadAverage)
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
