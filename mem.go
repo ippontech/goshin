@@ -35,3 +35,7 @@ func (m *MemoryUsage) Report(f func(*Metric)) {
 
 	f(metric)
 }
+
+func NewMemoryUsage() *MemoryUsage {
+        return &MemoryUsage {}
+}
