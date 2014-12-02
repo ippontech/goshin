@@ -68,7 +68,7 @@ func (n *NetStats) candidateIfaces() []string {
 	return keys
 }
 
-func (n *NetStats) Report(f func(*Metric)) {
+func (n *NetStats) Collect(queue chan *Metric) {
 	n.Store()
 
 	// first run or
@@ -84,22 +84,22 @@ func (n *NetStats) Report(f func(*Metric)) {
 		lastStat := n.last[ifaceName]
 		actualStat := n.actual[ifaceName]
 
-		f(buildMetric(ifaceName, "rx bytes", actualStat.RxBytes, lastStat.RxBytes, interval))
-		f(buildMetric(ifaceName, "rx packets", actualStat.RxPackets, lastStat.RxPackets, interval))
-		f(buildMetric(ifaceName, "rx errs", actualStat.RxErrs, lastStat.RxErrs, interval))
-		f(buildMetric(ifaceName, "rx drop", actualStat.RxDrop, lastStat.RxDrop, interval))
-		f(buildMetric(ifaceName, "rx frame", actualStat.RxFrame, lastStat.RxFrame, interval))
-		f(buildMetric(ifaceName, "rx compressed", actualStat.RxCompressed, lastStat.RxCompressed, interval))
-		f(buildMetric(ifaceName, "rx muticast", actualStat.RxMulticast, lastStat.RxMulticast, interval))
+		queue <- buildMetric(ifaceName, "rx bytes", actualStat.RxBytes, lastStat.RxBytes, interval)
+		queue <- buildMetric(ifaceName, "rx packets", actualStat.RxPackets, lastStat.RxPackets, interval)
+		queue <- buildMetric(ifaceName, "rx errs", actualStat.RxErrs, lastStat.RxErrs, interval)
+		queue <- buildMetric(ifaceName, "rx drop", actualStat.RxDrop, lastStat.RxDrop, interval)
+		queue <- buildMetric(ifaceName, "rx frame", actualStat.RxFrame, lastStat.RxFrame, interval)
+		queue <- buildMetric(ifaceName, "rx compressed", actualStat.RxCompressed, lastStat.RxCompressed, interval)
+		queue <- buildMetric(ifaceName, "rx muticast", actualStat.RxMulticast, lastStat.RxMulticast, interval)
 
-		f(buildMetric(ifaceName, "tx bytes", actualStat.TxBytes, lastStat.TxBytes, interval))
-		f(buildMetric(ifaceName, "tx packets", actualStat.TxPackets, lastStat.TxPackets, interval))
-		f(buildMetric(ifaceName, "tx errs", actualStat.TxErrs, lastStat.TxErrs, interval))
-		f(buildMetric(ifaceName, "tx drop", actualStat.TxDrop, lastStat.TxDrop, interval))
-		f(buildMetric(ifaceName, "tx fifo", actualStat.TxFifo, lastStat.TxFifo, interval))
-		f(buildMetric(ifaceName, "tx colls", actualStat.TxColls, lastStat.TxColls, interval))
-		f(buildMetric(ifaceName, "tx carrier", actualStat.TxCarrier, lastStat.TxCarrier, interval))
-		f(buildMetric(ifaceName, "tx compressed", actualStat.TxCompressed, lastStat.TxCompressed, interval))
+		queue <- buildMetric(ifaceName, "tx bytes", actualStat.TxBytes, lastStat.TxBytes, interval)
+		queue <- buildMetric(ifaceName, "tx packets", actualStat.TxPackets, lastStat.TxPackets, interval)
+		queue <- buildMetric(ifaceName, "tx errs", actualStat.TxErrs, lastStat.TxErrs, interval)
+		queue <- buildMetric(ifaceName, "tx drop", actualStat.TxDrop, lastStat.TxDrop, interval)
+		queue <- buildMetric(ifaceName, "tx fifo", actualStat.TxFifo, lastStat.TxFifo, interval)
+		queue <- buildMetric(ifaceName, "tx colls", actualStat.TxColls, lastStat.TxColls, interval)
+		queue <- buildMetric(ifaceName, "tx carrier", actualStat.TxCarrier, lastStat.TxCarrier, interval)
+		queue <- buildMetric(ifaceName, "tx compressed", actualStat.TxCompressed, lastStat.TxCompressed, interval)
 
 	}
 }
