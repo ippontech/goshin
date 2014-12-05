@@ -40,7 +40,14 @@ func (c *CPUTime) Ranking() string {
 }
 
 func (c *CPUTime) Collect(queue chan *Metric) {
+
 	c.Store()
+
+        if c.last.User ==  0 {
+                // nothing stored yet
+                // so no metric to send
+                return
+        }
 	metric := new(Metric)
 
 	metric.Service = "cpu"
