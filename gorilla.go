@@ -25,6 +25,7 @@ type Gorilla struct {
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
         CpuWarning, CpuCritical float64
+        LoadWarning, LoadCritical float64
 }
 
 func NewGorilla() *Gorilla {
@@ -36,7 +37,7 @@ func (g *Gorilla) Start() {
 
 	cputime := NewCPUTime(g.CpuWarning, g.CpuCritical)
 	memoryusage := NewMemoryUsage()
-	loadaverage := NewLoadAverage()
+	loadaverage := NewLoadAverage(g.LoadWarning, g.LoadCritical)
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 
 	fmt.Printf("Gorilla will report each %d seconds\n", g.Interval)

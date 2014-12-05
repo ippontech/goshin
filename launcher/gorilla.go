@@ -19,7 +19,9 @@ var (
 	ifacesPtr       = flag.String("interfaces", "", "Interfaces to monitor")
 	ignoreIfacesPtr = flag.String("ignore-interfaces", "lo", "Interfaces to ignore (default: lo)")
         cpuWarningPtr   = flag.Float64("cpu-warning", 0.9, "CPU warning threshold (fraction of total jiffies")
-        cpuCriticalPtr   = flag.Float64("cpu-critical", 0.95, "CPU warning threshold (fraction of total jiffies")
+        cpuCriticalPtr  = flag.Float64("cpu-critical", 0.95, "CPU critical threshold (fraction of total jiffies")
+        loadWarningPtr   = flag.Float64("load-warning", 3, "Load warning threshold (load average / core")
+        loadCriticalPtr  = flag.Float64("load-critical", 8, "Load critical threshold (load average / core)")
 )
 
 func main() {
@@ -58,6 +60,9 @@ func main() {
 
         gorilla.CpuCritical = *cpuCriticalPtr
         gorilla.CpuWarning  = *cpuWarningPtr
+
+        gorilla.LoadCritical = *loadCriticalPtr
+        gorilla.LoadWarning  = *loadWarningPtr
 
 	gorilla.Start()
 }

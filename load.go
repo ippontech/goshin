@@ -5,6 +5,7 @@ import linuxproc "github.com/c9s/goprocinfo/linux"
 
 type LoadAverage struct {
 	last1m, last5m, last15m float64
+        critical, warning float64
 }
 
 func (l *LoadAverage) Usage() float64 {
@@ -27,12 +28,21 @@ func (l *LoadAverage) Collect(queue chan *Metric) {
 	metric := NewMetric()
 
 	metric.Service = "load"
-	metric.Value = l.Usage()
+
+        usage := l.Usage()
+	metric.Value = usage
 	metric.Description = l.Ranking()
+
+        switch {
+                case usage > l.critical:
+                        metric.State = "critical"
+                case usage > l.warning:
+                        metric.State = "warning"
+        }
 
         queue <- metric
 }
 
-func NewLoadAverage() *LoadAverage {
-	return &LoadAverage{}
+func NewLoadAverage(warning, critical float64) *LoadAverage {
+	return &LoadAverage{warning: warning, critical: critical}
 }
