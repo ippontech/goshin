@@ -24,7 +24,7 @@ func (l *LoadAverage) Ranking() string {
 
 func (l *LoadAverage) Collect(queue chan *Metric) {
 
-	metric := new(Metric)
+	metric := NewMetric()
 
 	metric.Service = "load"
 	metric.Value = l.Usage()

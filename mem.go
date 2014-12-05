@@ -27,7 +27,7 @@ func (m *MemoryUsage) Ranking() string {
 
 func (m *MemoryUsage) Collect(queue chan *Metric) {
 
-	metric := new(Metric)
+	metric := NewMetric()
 
 	metric.Service = "memory"
 	metric.Value = m.Usage()

@@ -36,7 +36,7 @@ func (n *NetStats) Store() {
 }
 
 func buildMetric(iface string, name string, actual uint64, last uint64, interval float64) *Metric {
-	metric := new(Metric)
+	metric := NewMetric()
 	metric.Service = fmt.Sprintf("%s %s", iface, name)
 
 	diff := actual - last

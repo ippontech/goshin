@@ -18,6 +18,8 @@ var (
 	ttlPtr          = flag.Float64("ttl", 10, "TTL for events")
 	ifacesPtr       = flag.String("interfaces", "", "Interfaces to monitor")
 	ignoreIfacesPtr = flag.String("ignore-interfaces", "lo", "Interfaces to ignore (default: lo)")
+        cpuWarningPtr   = flag.Float64("cpu-warning", 0.9, "CPU warning threshold (fraction of total jiffies")
+        cpuCriticalPtr   = flag.Float64("cpu-critical", 0.95, "CPU warning threshold (fraction of total jiffies")
 )
 
 func main() {
@@ -53,6 +55,9 @@ func main() {
 		}
 	}
 	gorilla.IgnoreIfaces = ignoreIfaces
+
+        gorilla.CpuCritical = *cpuCriticalPtr
+        gorilla.CpuWarning  = *cpuWarningPtr
 
 	gorilla.Start()
 }

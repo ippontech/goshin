@@ -11,6 +11,10 @@ type Metric struct {
 	Value                interface{}
 }
 
+func NewMetric() *Metric{
+        return &Metric{State: "ok"}
+}
+
 type Gorilla struct {
 	Address      string
 	CheckCPU     bool
@@ -20,6 +24,7 @@ type Gorilla struct {
 	Ttl          float32
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
+        CpuWarning, CpuCritical float64
 }
 
 func NewGorilla() *Gorilla {
@@ -29,7 +34,7 @@ func NewGorilla() *Gorilla {
 func (g *Gorilla) Start() {
 	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
 
-	cputime := NewCPUTime()
+	cputime := NewCPUTime(g.CpuWarning, g.CpuCritical)
 	memoryusage := NewMemoryUsage()
 	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
@@ -78,7 +83,7 @@ func (g *Gorilla) Report(collectQueue chan *Metric) {
                                         Description: metric.Description,
                                         Tags:        g.Tag,
                                         Host:        g.EventHost,
-                                        State:       "ok"})
+                                        State:       metric.State})
 
                                 if err != nil {
                                         fmt.Println("something does wrong:", err)
