@@ -39,7 +39,7 @@ func (c *CPUTime) Ranking() string {
 	return fmt.Sprint("user+nice+system\n\n", s)
 }
 
-func (c *CPUTime) Report(f func(*Metric)) {
+func (c *CPUTime) Collect(queue chan *Metric) {
 	c.Store()
 	m := new(Metric)
 
@@ -47,9 +47,9 @@ func (c *CPUTime) Report(f func(*Metric)) {
 	m.value = c.Usage()
 	m.description = c.Ranking()
 
-	f(m)
+	queue <- m
 }
 
 func NewCPUTime() *CPUTime {
-	return &CPUTime {}
+	return &CPUTime{}
 }
