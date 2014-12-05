@@ -29,9 +29,9 @@ func (m *MemoryUsage) Collect(queue chan *Metric) {
 
 	metric := new(Metric)
 
-	metric.service = "memory"
-	metric.value = m.Usage()
-	metric.description = m.Ranking()
+	metric.Service = "memory"
+	metric.Value = m.Usage()
+	metric.Description = m.Ranking()
 
         queue <- metric
 }

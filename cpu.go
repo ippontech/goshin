@@ -41,13 +41,13 @@ func (c *CPUTime) Ranking() string {
 
 func (c *CPUTime) Collect(queue chan *Metric) {
 	c.Store()
-	m := new(Metric)
+	metric := new(Metric)
 
-	m.service = "cpu"
-	m.value = c.Usage()
-	m.description = c.Ranking()
+	metric.Service = "cpu"
+	metric.Value = c.Usage()
+	metric.Description = c.Ranking()
 
-	queue <- m
+	queue <- metric
 }
 
 func NewCPUTime() *CPUTime {

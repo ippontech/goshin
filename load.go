@@ -26,9 +26,9 @@ func (l *LoadAverage) Collect(queue chan *Metric) {
 
 	metric := new(Metric)
 
-	metric.service = "load"
-	metric.value = l.Usage()
-	metric.description = l.Ranking()
+	metric.Service = "load"
+	metric.Value = l.Usage()
+	metric.Description = l.Ranking()
 
         queue <- metric
 }

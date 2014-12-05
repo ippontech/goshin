@@ -7,8 +7,8 @@ import (
 )
 
 type Metric struct {
-	service, description string
-	value                interface{}
+	Service, Description, State string
+	Value                interface{}
 }
 
 type Gorilla struct {
@@ -72,10 +72,10 @@ func (g *Gorilla) Report(collectQueue chan *Metric) {
                         select {
                         case metric := <- collectQueue:
                                 err := c.SendEvent(&goryman.Event{
-                                        Metric:      metric.value,
+                                        Metric:      metric.Value,
                                         Ttl:         g.Ttl,
-                                        Service:     metric.service,
-                                        Description: metric.description,
+                                        Service:     metric.Service,
+                                        Description: metric.Description,
                                         Tags:        g.Tag,
                                         Host:        g.EventHost,
                                         State:       "ok"})
