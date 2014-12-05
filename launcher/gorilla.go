@@ -28,17 +28,17 @@ func main() {
 
 	iniflags.Parse()
 
-	gorilla := gorilla.NewGorilla()
+	app := gorilla.NewGorilla()
 
-	gorilla.Address = fmt.Sprintf("%s:%d", *hostPtr, *portPtr)
-	gorilla.EventHost = *eventHostPtr
-	gorilla.Interval = *intervalPtr
+	app.Address = fmt.Sprintf("%s:%d", *hostPtr, *portPtr)
+	app.EventHost = *eventHostPtr
+	app.Interval = *intervalPtr
 
 	if len(*tagPtr) != 0 {
-		gorilla.Tag = strings.Split(*tagPtr, ",")
+		app.Tag = strings.Split(*tagPtr, ",")
 	}
 
-	gorilla.Ttl = float32(*ttlPtr)
+	app.Ttl = float32(*ttlPtr)
 
 	ifaces := make(map[string]bool)
 
@@ -47,7 +47,7 @@ func main() {
 			ifaces[iface] = true
 		}
 	}
-	gorilla.Ifaces = ifaces
+	app.Ifaces = ifaces
 
 	ignoreIfaces := make(map[string]bool)
 
@@ -56,13 +56,21 @@ func main() {
 			ignoreIfaces[ignoreIface] = true
 		}
 	}
-	gorilla.IgnoreIfaces = ignoreIfaces
+	app.IgnoreIfaces = ignoreIfaces
 
-        gorilla.CpuCritical = *cpuCriticalPtr
-        gorilla.CpuWarning  = *cpuWarningPtr
 
-        gorilla.LoadCritical = *loadCriticalPtr
-        gorilla.LoadWarning  = *loadWarningPtr
+        cpuThreshold := gorilla.NewThreshold()
+        cpuThreshold.Critical = *cpuCriticalPtr
+        cpuThreshold.Warning = *cpuWarningPtr
 
-	gorilla.Start()
+        app.Thresholds["cpu"] = cpuThreshold
+
+
+        loadThreshold := gorilla.NewThreshold()
+        loadThreshold.Critical = *loadCriticalPtr
+        loadThreshold.Warning = *loadWarningPtr
+
+        app.Thresholds["load"] = loadThreshold
+
+	app.Start()
 }

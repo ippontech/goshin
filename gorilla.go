@@ -15,6 +15,14 @@ func NewMetric() *Metric{
         return &Metric{State: "ok"}
 }
 
+type Threshold struct {
+        Warning, Critical float64
+}
+
+func NewThreshold() *Threshold {
+        return &Threshold {}
+}
+
 type Gorilla struct {
 	Address      string
 	CheckCPU     bool
@@ -24,20 +32,21 @@ type Gorilla struct {
 	Ttl          float32
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
-        CpuWarning, CpuCritical float64
-        LoadWarning, LoadCritical float64
+        Thresholds   map[string]*Threshold
 }
 
 func NewGorilla() *Gorilla {
-	return &Gorilla{}
+	return &Gorilla{
+                Thresholds: make(map[string]*Threshold),
+        }
 }
 
 func (g *Gorilla) Start() {
 	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
 
-	cputime := NewCPUTime(g.CpuWarning, g.CpuCritical)
+	cputime := NewCPUTime()
 	memoryusage := NewMemoryUsage()
-	loadaverage := NewLoadAverage(g.LoadWarning, g.LoadCritical)
+	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 
 	fmt.Printf("Gorilla will report each %d seconds\n", g.Interval)
@@ -62,8 +71,28 @@ func (g *Gorilla) Start() {
 	}
 }
 
+func (g *Gorilla) EnforceState(metric *Metric) {
 
-func (g *Gorilla) Report(collectQueue chan *Metric) {
+        threshold, present := g.Thresholds[metric.Service]
+
+        if present {
+                value := metric.Value
+
+                // TODO threshold checking
+                // only for int and float type
+                switch {
+                        case value.(float64) > threshold.Critical:
+                                metric.State = "critical"
+                        case value.(float64)> threshold.Warning:
+                                metric.State = "warning"
+                        default:
+                                metric.State = "ok"
+                }
+        }
+}
+
+
+func (g *Gorilla) Report(reportQueue chan *Metric) {
 
         c := goryman.NewGorymanClient(g.Address)
         err := c.Connect()
@@ -76,7 +105,8 @@ func (g *Gorilla) Report(collectQueue chan *Metric) {
 
                 for more {
                         select {
-                        case metric := <- collectQueue:
+                        case metric := <- reportQueue:
+                                g.EnforceState(metric)
                                 err := c.SendEvent(&goryman.Event{
                                         Metric:      metric.Value,
                                         Ttl:         g.Ttl,

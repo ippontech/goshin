@@ -8,7 +8,6 @@ import linuxproc "github.com/c9s/goprocinfo/linux"
 
 type CPUTime struct {
 	last, actual linuxproc.CPUStat
-        critical, warning float64
 }
 
 func (c *CPUTime) Store() {
@@ -52,22 +51,12 @@ func (c *CPUTime) Collect(queue chan *Metric) {
 	metric := NewMetric()
 
 	metric.Service = "cpu"
-        usage := c.Usage()
-	metric.Value = usage
-
+	metric.Value = c.Usage()
 	metric.Description = c.Ranking()
-
-        switch {
-                case usage > c.critical:
-                        metric.State = "critical"
-                case usage > c.warning:
-                        metric.State = "warning"
-        }
 
 	queue <- metric
 }
 
-func NewCPUTime(warning, critical float64) *CPUTime {
-        return &CPUTime{warning: warning,
-                        critical: critical}
+func NewCPUTime() *CPUTime {
+        return &CPUTime{}
 }
