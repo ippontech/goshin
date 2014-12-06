@@ -31,8 +31,7 @@ func (l *LoadAverage) Collect(queue chan *Metric) {
 	metric.Value = l.Usage()
 	metric.Description = l.Ranking()
 
-
-        queue <- metric
+	queue <- metric
 }
 
 func NewLoadAverage() *LoadAverage {

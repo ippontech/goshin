@@ -43,11 +43,11 @@ func (c *CPUTime) Collect(queue chan *Metric) {
 
 	c.Store()
 
-        if c.last.User ==  0 {
-                // nothing stored yet
-                // so no metric to send
-                return
-        }
+	if c.last.User == 0 {
+		// nothing stored yet
+		// so no metric to send
+		return
+	}
 	metric := NewMetric()
 
 	metric.Service = "cpu"
@@ -58,5 +58,5 @@ func (c *CPUTime) Collect(queue chan *Metric) {
 }
 
 func NewCPUTime() *CPUTime {
-        return &CPUTime{}
+	return &CPUTime{}
 }

@@ -33,7 +33,7 @@ func (m *MemoryUsage) Collect(queue chan *Metric) {
 	metric.Value = m.Usage()
 	metric.Description = m.Ranking()
 
-        queue <- metric
+	queue <- metric
 }
 
 func NewMemoryUsage() *MemoryUsage {

@@ -8,19 +8,19 @@ import (
 
 type Metric struct {
 	Service, Description, State string
-	Value                interface{}
+	Value                       interface{}
 }
 
-func NewMetric() *Metric{
-        return &Metric{State: "ok"}
+func NewMetric() *Metric {
+	return &Metric{State: "ok"}
 }
 
 type Threshold struct {
-        Warning, Critical float64
+	Warning, Critical float64
 }
 
 func NewThreshold() *Threshold {
-        return &Threshold {}
+	return &Threshold{}
 }
 
 type Gorilla struct {
@@ -31,14 +31,14 @@ type Gorilla struct {
 	Ttl          float32
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
-        Thresholds   map[string]*Threshold
-        Checks       map[string]bool
+	Thresholds   map[string]*Threshold
+	Checks       map[string]bool
 }
 
 func NewGorilla() *Gorilla {
 	return &Gorilla{
-                Thresholds: make(map[string]*Threshold),
-        }
+		Thresholds: make(map[string]*Threshold),
+	}
 }
 
 func (g *Gorilla) Start() {
@@ -51,89 +51,88 @@ func (g *Gorilla) Start() {
 
 	fmt.Printf("Gorilla will report each %d seconds\n", g.Interval)
 
-        // channel size has to be large enough
-        // to allow Gorilla send all metrics to Riemann
-        // in g.Interval
-        var collectQueue chan *Metric = make(chan *Metric, 100)
+	// channel size has to be large enough
+	// to allow Gorilla send all metrics to Riemann
+	// in g.Interval
+	var collectQueue chan *Metric = make(chan *Metric, 100)
 
 	ticker := time.NewTicker(time.Second * time.Duration(g.Interval))
 
 	for t := range ticker.C {
 		fmt.Println("Tick at ", t)
 
-                // TODO find a better  way
-                // to check if a collector type
-                // is active
-                if g.Checks["cpu"] {
-                        go cputime.Collect(collectQueue)
-                }
-                if g.Checks["memory"] {
-		        go memoryusage.Collect(collectQueue)
-                }
-                if g.Checks["load"] {
-	        	go loadaverage.Collect(collectQueue)
-                }
-                if g.Checks["net"] {
-	        	go netstats.Collect(collectQueue)
-                }
+		// TODO find a better  way
+		// to check if a collector type
+		// is active
+		if g.Checks["cpu"] {
+			go cputime.Collect(collectQueue)
+		}
+		if g.Checks["memory"] {
+			go memoryusage.Collect(collectQueue)
+		}
+		if g.Checks["load"] {
+			go loadaverage.Collect(collectQueue)
+		}
+		if g.Checks["net"] {
+			go netstats.Collect(collectQueue)
+		}
 
-                go g.Report(collectQueue)
+		go g.Report(collectQueue)
 	}
 }
 
 func (g *Gorilla) EnforceState(metric *Metric) {
 
-        threshold, present := g.Thresholds[metric.Service]
+	threshold, present := g.Thresholds[metric.Service]
 
-        if present {
-                value := metric.Value
+	if present {
+		value := metric.Value
 
-                // TODO threshold checking
-                // only for int and float type
-                switch {
-                        case value.(float64) > threshold.Critical:
-                                metric.State = "critical"
-                        case value.(float64)> threshold.Warning:
-                                metric.State = "warning"
-                        default:
-                                metric.State = "ok"
-                }
-        }
+		// TODO threshold checking
+		// only for int and float type
+		switch {
+		case value.(float64) > threshold.Critical:
+			metric.State = "critical"
+		case value.(float64) > threshold.Warning:
+			metric.State = "warning"
+		default:
+			metric.State = "ok"
+		}
+	}
 }
-
 
 func (g *Gorilla) Report(reportQueue chan *Metric) {
 
-        c := goryman.NewGorymanClient(g.Address)
-        err := c.Connect()
+	c := goryman.NewGorymanClient(g.Address)
+	err := c.Connect()
 
-        if err != nil {
-                fmt.Println("Can not connect to host")
-        } else {
+	if err != nil {
+		fmt.Println("Can not connect to host")
+	} else {
 
-                more := true
+		more := true
 
-                for more {
-                        select {
-                        case metric := <- reportQueue:
-                                g.EnforceState(metric)
-                                err := c.SendEvent(&goryman.Event{
-                                        Metric:      metric.Value,
-                                        Ttl:         g.Ttl,
-                                        Service:     metric.Service,
-                                        Description: metric.Description,
-                                        Tags:        g.Tag,
-                                        Host:        g.EventHost,
-                                        State:       metric.State})
+		for more {
+			select {
+			case metric := <-reportQueue:
+				g.EnforceState(metric)
+				err := c.SendEvent(&goryman.Event{
+					Metric:      metric.Value,
+					Ttl:         g.Ttl,
+					Service:     metric.Service,
+					Description: metric.Description,
+					Tags:        g.Tag,
+					Host:        g.EventHost,
+					State:       metric.State})
 
-                                if err != nil {
-                                        fmt.Println("something does wrong:", err)
-                                }
-                        default:
-                                more = false
-                        }
-                }
-        }
+				if err != nil {
+					fmt.Println("something does wrong:", err)
+				}
+			default:
+				more = false
+			}
+		}
+	}
 
-        defer c.Close()
+	defer c.Close()
 }
