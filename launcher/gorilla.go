@@ -24,6 +24,7 @@ var (
         loadCriticalPtr  = flag.Float64("load-critical", 8, "Load critical threshold (load average / core)")
         memoryWarningPtr   = flag.Float64("memory-warning", 0.85, "Memory warning threshold (fraction of RAM)")
         memoryCriticalPtr  = flag.Float64("memory-critical", 0.95, "Memory critical threshold (fraction of RAM)")
+        checksPtr  = flag.String("checks", "cpu,load,memory,net,disk", "A list of checks to run")
 )
 
 func main() {
@@ -80,6 +81,15 @@ func main() {
         memoryThreshold.Warning = *memoryWarningPtr
 
         app.Thresholds["memory"] = memoryThreshold
+
+	checks := make(map[string]bool)
+
+	if len(*checksPtr) != 0 {
+		for _, check := range strings.Split(*checksPtr, ",") {
+			checks[check] = true
+		}
+	}
+	app.Checks = checks
 
 
 	app.Start()

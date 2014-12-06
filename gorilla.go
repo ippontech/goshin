@@ -32,6 +32,7 @@ type Gorilla struct {
 	Ifaces       map[string]bool
 	IgnoreIfaces map[string]bool
         Thresholds   map[string]*Threshold
+        Checks       map[string]bool
 }
 
 func NewGorilla() *Gorilla {
@@ -55,16 +56,26 @@ func (g *Gorilla) Start() {
         // in g.Interval
         var collectQueue chan *Metric = make(chan *Metric, 100)
 
-        go g.Report(collectQueue)
-
 	ticker := time.NewTicker(time.Second * time.Duration(g.Interval))
 
 	for t := range ticker.C {
 		fmt.Println("Tick at ", t)
-                go cputime.Collect(collectQueue)
-		go memoryusage.Collect(collectQueue)
-		go loadaverage.Collect(collectQueue)
-		go netstats.Collect(collectQueue)
+
+                // TODO find a better  way
+                // to check if a collector type
+                // is active
+                if g.Checks["cpu"] {
+                        go cputime.Collect(collectQueue)
+                }
+                if g.Checks["memory"] {
+		        go memoryusage.Collect(collectQueue)
+                }
+                if g.Checks["load"] {
+	        	go loadaverage.Collect(collectQueue)
+                }
+                if g.Checks["net"] {
+	        	go netstats.Collect(collectQueue)
+                }
 
                 go g.Report(collectQueue)
 	}
