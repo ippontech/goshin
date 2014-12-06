@@ -25,7 +25,6 @@ func NewThreshold() *Threshold {
 
 type Gorilla struct {
 	Address      string
-	CheckCPU     bool
 	EventHost    string
 	Interval     int
 	Tag          []string

@@ -22,6 +22,8 @@ var (
         cpuCriticalPtr  = flag.Float64("cpu-critical", 0.95, "CPU critical threshold (fraction of total jiffies")
         loadWarningPtr   = flag.Float64("load-warning", 3, "Load warning threshold (load average / core")
         loadCriticalPtr  = flag.Float64("load-critical", 8, "Load critical threshold (load average / core)")
+        memoryWarningPtr   = flag.Float64("memory-warning", 0.85, "Memory warning threshold (fraction of RAM)")
+        memoryCriticalPtr  = flag.Float64("memory-critical", 0.95, "Memory critical threshold (fraction of RAM)")
 )
 
 func main() {
@@ -71,6 +73,14 @@ func main() {
         loadThreshold.Warning = *loadWarningPtr
 
         app.Thresholds["load"] = loadThreshold
+
+
+        memoryThreshold := gorilla.NewThreshold()
+        memoryThreshold.Critical = *memoryCriticalPtr
+        memoryThreshold.Warning = *memoryWarningPtr
+
+        app.Thresholds["memory"] = memoryThreshold
+
 
 	app.Start()
 }
