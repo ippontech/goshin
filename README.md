@@ -3,7 +3,7 @@
 > I love Riemann but I hate Riemann-tools. You too? Try Gorilla!
 
 
-Gorilla! aims to be a drop in alternative to Riemann-tools.
+Gorilla! aims to be a drop-in alternative to Riemann-tools.
 
 ## Why?
 
@@ -13,7 +13,7 @@ By itself, Riemann-tools does the job. The main criticism is the installation pr
 gem install riemann-tools
 ```
 
-A pretty neat one-line installer... Cool, right? But let's take a look to dependencies :
+A pretty neat one-line installer... Cool, right? But let's take a look at the dependencies :
 
  - __faraday__: HTTP/REST API client library
  - __fog__: The Ruby cloud services library
@@ -26,15 +26,15 @@ A pretty neat one-line installer... Cool, right? But let's take a look to depend
 
 What's wrong? Actually nothing if you just want to push metrics from your personnal laptop. But things get worse if you have to deploy riemann-tools in a heterogeneous environment :
 
- - beefcake requiert Ruby 1.9.3 and on some (not so) old systems no package is available without adding external packages repositories
- - yajl-ruby and Nokogiri will build compile a C extension and for this will require gcc
+ - beefcake requires Ruby 1.9.3 and on some (not so) old systems no package is available without adding external packages repositories
+ - yajl-ruby and Nokogiri will compile a C extension and for this will require gcc
  
 
 ## Gorilla!, a Go alternative to riemann-tools
 
-That's our proposal : use Golang to implement a drop in alternative to riemann-tools. Just drop one big (sic) binary on your box and launch Gorilla! No external dependencies.
+That's our proposal : use Golang to implement a drop-in alternative to riemann-tools. Just drop one big (sic) binary on your box and launch Gorilla! No external dependencies.
 
-Gorilla! try to mimic riemann-tools metrics gathering and for now covers the following riemann-tools metric : 
+Gorilla! tries to mimic riemann-tools metrics gathering and for now covers the following riemann-tools metric : 
 
  - riemann-health : cpu, memory and load
  - riemann-net : network usage
@@ -43,7 +43,7 @@ Gorilla! also borrows riemann-health and riemann-net flags.
 
 ## Usage
 
-To start gather metrics you have just to launch Gorilla! binary. By default, it will report cpu,memory,load and network metrics to a local Riemann instance.
+To start gathering metrics you just have to launch Gorilla! binary. By default, it will report cpu, memory, load and network metrics to a local Riemann instance.
 
 ```
 $ ./gorilla
@@ -51,7 +51,7 @@ Gare aux goriiillllleeeees!
 Gorilla will report each 5 seconds
 
 ```
-It tries to support the same flags than riemann-health and riemann-net.
+It tries to support the same flags as riemann-health and riemann-net.
 
 ```
 $ ./gorilla --host=riemann.example.com
@@ -82,7 +82,7 @@ Usage of ./gorilla:
   -ttl=10: TTL for events
 
 ```
-You can also pass flags via a ini-style configuration file and the `--config` flag
+You can also pass flags via an ini-style configuration file and the `--config` flag
 
 ```
 $ cat gorilla.ini
