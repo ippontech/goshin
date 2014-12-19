@@ -1,9 +1,9 @@
-# Gorilla!
+# Goshin!
 
-> I love Riemann but I hate Riemann-tools. You too? Try Gorilla!
+> I love Riemann but I hate Riemann-tools. You too? Try Goshin!
 
 
-Gorilla! aims to be a drop in alternative to Riemann-tools.
+Goshin! aims to be a drop in alternative to Riemann-tools.
 
 ## Why?
 
@@ -30,38 +30,38 @@ What's wrong? Actually nothing if you just want to push metrics from your person
  - yajl-ruby and Nokogiri will build compile a C extension and for this will require gcc
  
 
-## Gorilla!, a Go alternative to riemann-tools
+## Goshin!, a Go alternative to riemann-tools
 
-That's our proposal : use Golang to implement a drop in alternative to riemann-tools. Just drop one big (sic) binary on your box and launch Gorilla! No external dependencies.
+That's our proposal : use Golang to implement a drop in alternative to riemann-tools. Just drop one big (sic) binary on your box and launch Goshin! No external dependencies.
 
-Gorilla! try to mimic riemann-tools metrics gathering and for now covers the following riemann-tools metric : 
+Goshin! try to mimic riemann-tools metrics gathering and for now covers the following riemann-tools metric : 
 
  - riemann-health : cpu, memory and load
  - riemann-net : network usage
 
-Gorilla! also borrows riemann-health and riemann-net flags.
+Goshin! also borrows riemann-health and riemann-net flags.
 
 ## Usage
 
-To start gather metrics you have just to launch Gorilla! binary. By default, it will report cpu,memory,load and network metrics to a local Riemann instance.
+To start gather metrics you have just to launch Goshin! binary. By default, it will report cpu,memory,load and network metrics to a local Riemann instance.
 
 ```
-$ ./gorilla
+$ ./goshin
 Gare aux goriiillllleeeees!
-Gorilla will report each 5 seconds
+Goshin will report each 5 seconds
 
 ```
 It tries to support the same flags than riemann-health and riemann-net.
 
 ```
-$ ./gorilla --host=riemann.example.com
+$ ./goshin --host=riemann.example.com
 ```
 
 To check the available flags, check the online help
 
 ```
-$ ./gorilla --help
-Usage of ./gorilla:
+$ ./goshin --help
+Usage of ./goshin:
   -checks="cpu,load,memory,net,disk": A list of checks to run
   -config="": Path to ini config for using in go flags. May be relative to the current executable path.
   -configUpdateInterval=0: Update interval for re-reading config file set via -config flag. Zero disables config file re-reading.
@@ -85,12 +85,12 @@ Usage of ./gorilla:
 You can also pass flags via a ini-style configuration file and the `--config` flag
 
 ```
-$ cat gorilla.ini
+$ cat goshin.ini
 host=riemann.example.com
 interfaces=wlan0,tun0,eth0
-tag=gorilla
+tag=goshin
 interval=1
-$ ./gorilla --config gorilla.ini
+$ ./goshin --config goshin.ini
 ```
 
 License

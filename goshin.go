@@ -1,4 +1,4 @@
-package gorilla
+package goshin
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ func NewThreshold() *Threshold {
 	return &Threshold{}
 }
 
-type Gorilla struct {
+type Goshin struct {
 	Address      string
 	EventHost    string
 	Interval     int
@@ -35,13 +35,13 @@ type Gorilla struct {
 	Checks       map[string]bool
 }
 
-func NewGorilla() *Gorilla {
-	return &Gorilla{
+func NewGoshin() *Goshin {
+	return &Goshin{
 		Thresholds: make(map[string]*Threshold),
 	}
 }
 
-func (g *Gorilla) Start() {
+func (g *Goshin) Start() {
 	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
 
 	cputime := NewCPUTime()
@@ -49,10 +49,10 @@ func (g *Gorilla) Start() {
 	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 
-	fmt.Printf("Gorilla will report each %d seconds\n", g.Interval)
+	fmt.Printf("Goshin will report each %d seconds\n", g.Interval)
 
 	// channel size has to be large enough
-	// to allow Gorilla send all metrics to Riemann
+	// to allow Goshin send all metrics to Riemann
 	// in g.Interval
 	var collectQueue chan *Metric = make(chan *Metric, 100)
 
@@ -81,7 +81,7 @@ func (g *Gorilla) Start() {
 	}
 }
 
-func (g *Gorilla) EnforceState(metric *Metric) {
+func (g *Goshin) EnforceState(metric *Metric) {
 
 	threshold, present := g.Thresholds[metric.Service]
 
@@ -101,7 +101,7 @@ func (g *Gorilla) EnforceState(metric *Metric) {
 	}
 }
 
-func (g *Gorilla) Report(reportQueue chan *Metric) {
+func (g *Goshin) Report(reportQueue chan *Metric) {
 
 	c := goryman.NewGorymanClient(g.Address)
 	err := c.Connect()

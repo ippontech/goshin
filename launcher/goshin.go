@@ -1,6 +1,6 @@
 package main
 
-import "github.com/pariviere/gorilla"
+import "github.com/pariviere/goshin"
 import "flag"
 import "fmt"
 import "os"
@@ -31,7 +31,7 @@ func main() {
 
 	iniflags.Parse()
 
-	app := gorilla.NewGorilla()
+	app := goshin.NewGoshin()
 
 	app.Address = fmt.Sprintf("%s:%d", *hostPtr, *portPtr)
 	app.EventHost = *eventHostPtr
@@ -61,19 +61,19 @@ func main() {
 	}
 	app.IgnoreIfaces = ignoreIfaces
 
-	cpuThreshold := gorilla.NewThreshold()
+	cpuThreshold := goshin.NewThreshold()
 	cpuThreshold.Critical = *cpuCriticalPtr
 	cpuThreshold.Warning = *cpuWarningPtr
 
 	app.Thresholds["cpu"] = cpuThreshold
 
-	loadThreshold := gorilla.NewThreshold()
+	loadThreshold := goshin.NewThreshold()
 	loadThreshold.Critical = *loadCriticalPtr
 	loadThreshold.Warning = *loadWarningPtr
 
 	app.Thresholds["load"] = loadThreshold
 
-	memoryThreshold := gorilla.NewThreshold()
+	memoryThreshold := goshin.NewThreshold()
 	memoryThreshold.Critical = *memoryCriticalPtr
 	memoryThreshold.Warning = *memoryWarningPtr
 
