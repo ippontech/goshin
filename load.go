@@ -1,7 +1,7 @@
 package goshin
 
 import "fmt"
-import linuxproc "github.com/c9s/goprocinfo/linux"
+import linuxproc "github.com/pariviere/goprocinfo/linux"
 
 type LoadAverage struct {
 	last1m, last5m, last15m float64
