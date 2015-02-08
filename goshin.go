@@ -25,15 +25,17 @@ func NewThreshold() *Threshold {
 }
 
 type Goshin struct {
-	Address      string
-	EventHost    string
-	Interval     int
-	Tag          []string
-	Ttl          float32
-	Ifaces       map[string]bool
-	IgnoreIfaces map[string]bool
-	Thresholds   map[string]*Threshold
-	Checks       map[string]bool
+	Address       string
+	EventHost     string
+	Interval      int
+	Tag           []string
+	Ttl           float32
+	Ifaces        map[string]bool
+	IgnoreIfaces  map[string]bool
+	Devices       map[string]bool
+	IgnoreDevices map[string]bool
+	Thresholds    map[string]*Threshold
+	Checks        map[string]bool
 }
 
 func NewGoshin() *Goshin {
@@ -50,6 +52,7 @@ func (g *Goshin) Start() {
 	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
 	diskspace := NewDiskSpace()
+	diskstats := NewDiskStats(g.Devices, g.IgnoreDevices)
 
 	fmt.Printf("Goshin will report each %d seconds\n", g.Interval)
 
@@ -80,6 +83,9 @@ func (g *Goshin) Start() {
 		}
 		if g.Checks["disk"] {
 			go diskspace.Collect(collectQueue)
+		}
+		if g.Checks["diskstats"] {
+			go diskstats.Collect(collectQueue)
 		}
 
 		go g.Report(collectQueue)

@@ -18,6 +18,8 @@ var (
 	ttlPtr            = flag.Float64("ttl", 10, "TTL for events")
 	ifacesPtr         = flag.String("interfaces", "", "Interfaces to monitor")
 	ignoreIfacesPtr   = flag.String("ignore-interfaces", "lo", "Interfaces to ignore (default: lo)")
+	devicesPtr        = flag.String("devices", "", "Devices to monitor")
+	ignoreDevicesPtr  = flag.String("ignore-devices", "", "Devices to ignore (default: nil)")
 	cpuWarningPtr     = flag.Float64("cpu-warning", 0.9, "CPU warning threshold (fraction of total jiffies)")
 	cpuCriticalPtr    = flag.Float64("cpu-critical", 0.95, "CPU critical threshold (fraction of total jiffies)")
 	diskWarningPtr    = flag.Float64("disk-warning", 0.9, "Disk warning threshold (fraction of space used)")
@@ -45,6 +47,7 @@ func main() {
 
 	app.Ttl = float32(*ttlPtr)
 
+	// iface
 	ifaces := make(map[string]bool)
 
 	if len(*ifacesPtr) != 0 {
@@ -63,6 +66,26 @@ func main() {
 	}
 	app.IgnoreIfaces = ignoreIfaces
 
+	// devices
+	devices := make(map[string]bool)
+
+	if len(*devicesPtr) != 0 {
+		for _, device := range strings.Split(*devicesPtr, ",") {
+			devices[device] = true
+		}
+	}
+	app.Devices = devices
+
+	ignoreDevices := make(map[string]bool)
+
+	if len(*ignoreDevicesPtr) != 0 {
+		for _, ignoreDevice := range strings.Split(*ignoreDevicesPtr, ",") {
+			ignoreDevices[ignoreDevice] = true
+		}
+	}
+	app.IgnoreDevices = ignoreDevices
+
+	// threshold
 	cpuThreshold := goshin.NewThreshold()
 	cpuThreshold.Critical = *cpuCriticalPtr
 	cpuThreshold.Warning = *cpuWarningPtr
