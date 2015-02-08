@@ -23,12 +23,12 @@ func (c *CPUTime) Used() uint64 {
 }
 
 func (c *CPUTime) IOWait() uint64 {
-        return c.actual.IOWait - c.last.IOWait
+	return c.actual.IOWait - c.last.IOWait
 }
 
 func (c *CPUTime) Total() uint64 {
-        // should IOWait be considered as idle?
-        return c.Used() + (c.actual.Idle + c.actual.IOWait) - (c.last.Idle + c.actual.IOWait)
+	// should IOWait be considered as idle?
+	return c.Used() + (c.actual.Idle + c.actual.IOWait) - (c.last.Idle + c.actual.IOWait)
 }
 
 func (c *CPUTime) Usage() float64 {
@@ -37,8 +37,8 @@ func (c *CPUTime) Usage() float64 {
 }
 
 func (c *CPUTime) IOWaitUsage() float64 {
-        var fraction float64 = float64(c.IOWait()) / float64(c.Total())
-        return fraction
+	var fraction float64 = float64(c.IOWait()) / float64(c.Total())
+	return fraction
 }
 
 func (c *CPUTime) Ranking() string {
@@ -68,11 +68,11 @@ func (c *CPUTime) Collect(queue chan *Metric) {
 
 	cpuwait := NewMetric()
 
-        cpuwait.Service = "cpuwait"
-        cpuwait.Value   = c.IOWaitUsage()
-        cpuwait.Description = c.Ranking()
+	cpuwait.Service = "cpuwait"
+	cpuwait.Value = c.IOWaitUsage()
+	cpuwait.Description = c.Ranking()
 
-        queue <- cpuwait
+	queue <- cpuwait
 }
 
 func NewCPUTime() *CPUTime {
