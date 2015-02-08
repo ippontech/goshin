@@ -3,6 +3,7 @@ package goshin
 import (
 	"fmt"
 	"github.com/bigdatadev/goryman"
+	"strings"
 	"time"
 )
 
@@ -48,6 +49,7 @@ func (g *Goshin) Start() {
 	memoryusage := NewMemoryUsage()
 	loadaverage := NewLoadAverage()
 	netstats := NewNetStats(g.Ifaces, g.IgnoreIfaces)
+	diskspace := NewDiskSpace()
 
 	fmt.Printf("Goshin will report each %d seconds\n", g.Interval)
 
@@ -76,6 +78,9 @@ func (g *Goshin) Start() {
 		if g.Checks["net"] {
 			go netstats.Collect(collectQueue)
 		}
+		if g.Checks["disk"] {
+			go diskspace.Collect(collectQueue)
+		}
 
 		go g.Report(collectQueue)
 	}
@@ -83,7 +88,11 @@ func (g *Goshin) Start() {
 
 func (g *Goshin) EnforceState(metric *Metric) {
 
-	threshold, present := g.Thresholds[metric.Service]
+	// disk /boot => disk
+	// cpu => cpu
+	service := strings.Split(metric.Service, " ")[0]
+
+	threshold, present := g.Thresholds[service]
 
 	if present {
 		value := metric.Value
