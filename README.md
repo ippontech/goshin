@@ -37,8 +37,9 @@ Goshin! tries to mimic riemann-tools metrics gathering and for now covers the fo
 
  - riemann-health : cpu, memory and load
  - riemann-net : network usage
+ - riemann-diskstats: disk statistics
 
-Goshin! also borrows riemann-health and riemann-net flags.
+Goshin! also borrows riemann-health, riemann-net and riemann-diskstats flags.
 
 ## Usage
 
@@ -59,21 +60,25 @@ $ ./goshin --host=riemann.example.com
 To check the available flags, check the online help
 
 ```
-$ ./goshin --help
+./goshin --help
 Usage of ./goshin:
   -checks="cpu,load,memory,net,disk": A list of checks to run
   -config="": Path to ini config for using in go flags. May be relative to the current executable path.
   -configUpdateInterval=0: Update interval for re-reading config file set via -config flag. Zero disables config file re-reading.
-  -cpu-critical=0.95: CPU critical threshold (fraction of total jiffies
-  -cpu-warning=0.9: CPU warning threshold (fraction of total jiffies
+  -cpu-critical=0.95: CPU critical threshold (fraction of total jiffies)
+  -cpu-warning=0.9: CPU warning threshold (fraction of total jiffies)
+  -devices="": Devices to monitor
+  -disk-critical=0.95: Disk critical threshold (fraction of space used)
+  -disk-warning=0.9: Disk warning threshold (fraction of space used)
   -dumpflags=false: Dumps values for all flags defined in the app into stdout in ini-compatible syntax and terminates the app.
   -event-host="t510i": Event hostname
   -host="localhost": Riemann host
+  -ignore-devices="": Devices to ignore (default: nil)
   -ignore-interfaces="lo": Interfaces to ignore (default: lo)
   -interfaces="": Interfaces to monitor
   -interval=5: Seconds between updates
   -load-critical=8: Load critical threshold (load average / core)
-  -load-warning=3: Load warning threshold (load average / core
+  -load-warning=3: Load warning threshold (load average / core)
   -memory-critical=0.95: Memory critical threshold (fraction of RAM)
   -memory-warning=0.85: Memory warning threshold (fraction of RAM)
   -port=5555: Riemann port
