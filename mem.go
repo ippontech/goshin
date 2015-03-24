@@ -11,8 +11,8 @@ type MemoryUsage struct {
 func (m *MemoryUsage) Usage() float64 {
 	memInfo, _ := linuxproc.ReadMemInfo("/proc/meminfo")
 
-	m.free = memInfo["MemFree"] + memInfo["Buffers"] + memInfo["Cached"]
-	m.total = memInfo["MemTotal"]
+	m.free = memInfo.MemFree + memInfo.Buffers + memInfo.Cached
+	m.total = memInfo.MemTotal
 
 	return float64(1 - float64(m.free)/float64(m.total))
 }
