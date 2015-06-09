@@ -2,6 +2,7 @@ package goshin
 
 import (
 	"fmt"
+	"github.com/tjgq/broadcast"
 	"os/exec"
 )
 import linuxproc "github.com/c9s/goprocinfo/linux"
@@ -49,30 +50,34 @@ func (c *CPUTime) Ranking() string {
 	return fmt.Sprint("user+nice+system\n\n", s)
 }
 
-func (c *CPUTime) Collect(queue chan *Metric) {
+func (c *CPUTime) Collect(queue chan *Metric, listener *broadcast.Listener) {
 
-	c.Store()
+	for {
+		<-listener.Ch
 
-	if c.last.User == 0 {
-		// nothing stored yet
-		// so no metric to send
-		return
+		c.Store()
+
+		if c.last.User == 0 {
+			// nothing stored yet
+			// so no metric to send
+			continue
+		}
+		cpu := NewMetric()
+
+		cpu.Service = "cpu"
+		cpu.Value = c.Usage()
+		cpu.Description = c.Ranking()
+
+		queue <- cpu
+
+		cpuwait := NewMetric()
+
+		cpuwait.Service = "cpuwait"
+		cpuwait.Value = c.IOWaitUsage()
+		cpuwait.Description = c.Ranking()
+
+		queue <- cpuwait
 	}
-	cpu := NewMetric()
-
-	cpu.Service = "cpu"
-	cpu.Value = c.Usage()
-	cpu.Description = c.Ranking()
-
-	queue <- cpu
-
-	cpuwait := NewMetric()
-
-	cpuwait.Service = "cpuwait"
-	cpuwait.Value = c.IOWaitUsage()
-	cpuwait.Description = c.Ranking()
-
-	queue <- cpuwait
 }
 
 func NewCPUTime() *CPUTime {

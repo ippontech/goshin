@@ -2,6 +2,7 @@ package goshin
 
 import "fmt"
 import linuxproc "github.com/c9s/goprocinfo/linux"
+import "github.com/tjgq/broadcast"
 
 type LoadAverage struct {
 	last1m, last5m, last15m float64
@@ -22,16 +23,19 @@ func (l *LoadAverage) Ranking() string {
 	return fmt.Sprintf("1-minute load average/core is %f", l.last1m)
 }
 
-func (l *LoadAverage) Collect(queue chan *Metric) {
+func (l *LoadAverage) Collect(queue chan *Metric, listener *broadcast.Listener) {
+	for {
+		<-listener.Ch
 
-	metric := NewMetric()
+		metric := NewMetric()
 
-	metric.Service = "load"
+		metric.Service = "load"
 
-	metric.Value = l.Usage()
-	metric.Description = l.Ranking()
+		metric.Value = l.Usage()
+		metric.Description = l.Ranking()
 
-	queue <- metric
+		queue <- metric
+	}
 }
 
 func NewLoadAverage() *LoadAverage {

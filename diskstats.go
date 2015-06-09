@@ -6,6 +6,7 @@ import (
 	"time"
 )
 import linuxproc "github.com/c9s/goprocinfo/linux"
+import "github.com/tjgq/broadcast"
 
 type DiskStats struct {
 	last, actual           map[string]linuxproc.DiskStat
@@ -75,33 +76,37 @@ func (n *DiskStats) candidateDevices() []string {
 	return keys
 }
 
-func (n *DiskStats) Collect(queue chan *Metric) {
-	n.Store()
+func (n *DiskStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
+	for {
+		<-listener.Ch
 
-	// first run or
-	// no interface
-	if len(n.last) == 0 {
-		return
-	}
+		n.Store()
 
-	interval := float64(n.actualTime.Sub(n.lastTime).Seconds())
+		// first run or
+		// no interface
+		if len(n.last) == 0 {
+			return
+		}
 
-	for _, deviceName := range n.candidateDevices() {
+		interval := float64(n.actualTime.Sub(n.lastTime).Seconds())
 
-		lastStat := n.last[deviceName]
-		actualStat := n.actual[deviceName]
+		for _, deviceName := range n.candidateDevices() {
 
-		queue <- n.buildMetric(deviceName, "reads reqs", actualStat.ReadIOs, lastStat.ReadIOs, interval)
-		queue <- n.buildMetric(deviceName, "reads merged", actualStat.ReadMerges, lastStat.ReadMerges, interval)
-		queue <- n.buildMetric(deviceName, "reads sector", actualStat.ReadSectors, lastStat.ReadSectors, interval)
-		queue <- n.buildMetric(deviceName, "reads time", actualStat.ReadTicks, lastStat.ReadTicks, interval)
-		queue <- n.buildMetric(deviceName, "writes reqs", actualStat.WriteIOs, lastStat.WriteIOs, interval)
-		queue <- n.buildMetric(deviceName, "writes merged", actualStat.WriteMerges, lastStat.WriteMerges, interval)
-		queue <- n.buildMetric(deviceName, "writes sector", actualStat.WriteSectors, lastStat.WriteSectors, interval)
-		queue <- n.buildMetric(deviceName, "writes time", actualStat.WriteTicks, lastStat.WriteTicks, interval)
-		queue <- n.buildMetric(deviceName, "io reqs", actualStat.InFlight, lastStat.InFlight, interval)
-		queue <- n.buildMetric(deviceName, "io time", actualStat.IOTicks, lastStat.IOTicks, interval)
-		queue <- n.buildMetric(deviceName, "io weighted", actualStat.TimeInQueue, lastStat.TimeInQueue, interval)
+			lastStat := n.last[deviceName]
+			actualStat := n.actual[deviceName]
+
+			queue <- n.buildMetric(deviceName, "reads reqs", actualStat.ReadIOs, lastStat.ReadIOs, interval)
+			queue <- n.buildMetric(deviceName, "reads merged", actualStat.ReadMerges, lastStat.ReadMerges, interval)
+			queue <- n.buildMetric(deviceName, "reads sector", actualStat.ReadSectors, lastStat.ReadSectors, interval)
+			queue <- n.buildMetric(deviceName, "reads time", actualStat.ReadTicks, lastStat.ReadTicks, interval)
+			queue <- n.buildMetric(deviceName, "writes reqs", actualStat.WriteIOs, lastStat.WriteIOs, interval)
+			queue <- n.buildMetric(deviceName, "writes merged", actualStat.WriteMerges, lastStat.WriteMerges, interval)
+			queue <- n.buildMetric(deviceName, "writes sector", actualStat.WriteSectors, lastStat.WriteSectors, interval)
+			queue <- n.buildMetric(deviceName, "writes time", actualStat.WriteTicks, lastStat.WriteTicks, interval)
+			queue <- n.buildMetric(deviceName, "io reqs", actualStat.InFlight, lastStat.InFlight, interval)
+			queue <- n.buildMetric(deviceName, "io time", actualStat.IOTicks, lastStat.IOTicks, interval)
+			queue <- n.buildMetric(deviceName, "io weighted", actualStat.TimeInQueue, lastStat.TimeInQueue, interval)
+		}
 	}
 }
 

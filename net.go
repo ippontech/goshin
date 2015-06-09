@@ -5,6 +5,7 @@ import (
 	"time"
 )
 import linuxproc "github.com/c9s/goprocinfo/linux"
+import "github.com/tjgq/broadcast"
 
 type NetStats struct {
 	last, actual         map[string]linuxproc.NetworkStat
@@ -68,39 +69,43 @@ func (n *NetStats) candidateIfaces() []string {
 	return keys
 }
 
-func (n *NetStats) Collect(queue chan *Metric) {
-	n.Store()
+func (n *NetStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
+	for {
+		<-listener.Ch
 
-	// first run or
-	// no interface
-	if len(n.last) == 0 {
-		return
-	}
+		n.Store()
 
-	interval := float64(n.actualTime.Sub(n.lastTime).Seconds())
+		// first run or
+		// no interface
+		if len(n.last) == 0 {
+			return
+		}
 
-	for _, ifaceName := range n.candidateIfaces() {
+		interval := float64(n.actualTime.Sub(n.lastTime).Seconds())
 
-		lastStat := n.last[ifaceName]
-		actualStat := n.actual[ifaceName]
+		for _, ifaceName := range n.candidateIfaces() {
 
-		queue <- buildMetric(ifaceName, "rx bytes", actualStat.RxBytes, lastStat.RxBytes, interval)
-		queue <- buildMetric(ifaceName, "rx packets", actualStat.RxPackets, lastStat.RxPackets, interval)
-		queue <- buildMetric(ifaceName, "rx errs", actualStat.RxErrs, lastStat.RxErrs, interval)
-		queue <- buildMetric(ifaceName, "rx drop", actualStat.RxDrop, lastStat.RxDrop, interval)
-		queue <- buildMetric(ifaceName, "rx frame", actualStat.RxFrame, lastStat.RxFrame, interval)
-		queue <- buildMetric(ifaceName, "rx compressed", actualStat.RxCompressed, lastStat.RxCompressed, interval)
-		queue <- buildMetric(ifaceName, "rx muticast", actualStat.RxMulticast, lastStat.RxMulticast, interval)
+			lastStat := n.last[ifaceName]
+			actualStat := n.actual[ifaceName]
 
-		queue <- buildMetric(ifaceName, "tx bytes", actualStat.TxBytes, lastStat.TxBytes, interval)
-		queue <- buildMetric(ifaceName, "tx packets", actualStat.TxPackets, lastStat.TxPackets, interval)
-		queue <- buildMetric(ifaceName, "tx errs", actualStat.TxErrs, lastStat.TxErrs, interval)
-		queue <- buildMetric(ifaceName, "tx drop", actualStat.TxDrop, lastStat.TxDrop, interval)
-		queue <- buildMetric(ifaceName, "tx fifo", actualStat.TxFifo, lastStat.TxFifo, interval)
-		queue <- buildMetric(ifaceName, "tx colls", actualStat.TxColls, lastStat.TxColls, interval)
-		queue <- buildMetric(ifaceName, "tx carrier", actualStat.TxCarrier, lastStat.TxCarrier, interval)
-		queue <- buildMetric(ifaceName, "tx compressed", actualStat.TxCompressed, lastStat.TxCompressed, interval)
+			queue <- buildMetric(ifaceName, "rx bytes", actualStat.RxBytes, lastStat.RxBytes, interval)
+			queue <- buildMetric(ifaceName, "rx packets", actualStat.RxPackets, lastStat.RxPackets, interval)
+			queue <- buildMetric(ifaceName, "rx errs", actualStat.RxErrs, lastStat.RxErrs, interval)
+			queue <- buildMetric(ifaceName, "rx drop", actualStat.RxDrop, lastStat.RxDrop, interval)
+			queue <- buildMetric(ifaceName, "rx frame", actualStat.RxFrame, lastStat.RxFrame, interval)
+			queue <- buildMetric(ifaceName, "rx compressed", actualStat.RxCompressed, lastStat.RxCompressed, interval)
+			queue <- buildMetric(ifaceName, "rx muticast", actualStat.RxMulticast, lastStat.RxMulticast, interval)
 
+			queue <- buildMetric(ifaceName, "tx bytes", actualStat.TxBytes, lastStat.TxBytes, interval)
+			queue <- buildMetric(ifaceName, "tx packets", actualStat.TxPackets, lastStat.TxPackets, interval)
+			queue <- buildMetric(ifaceName, "tx errs", actualStat.TxErrs, lastStat.TxErrs, interval)
+			queue <- buildMetric(ifaceName, "tx drop", actualStat.TxDrop, lastStat.TxDrop, interval)
+			queue <- buildMetric(ifaceName, "tx fifo", actualStat.TxFifo, lastStat.TxFifo, interval)
+			queue <- buildMetric(ifaceName, "tx colls", actualStat.TxColls, lastStat.TxColls, interval)
+			queue <- buildMetric(ifaceName, "tx carrier", actualStat.TxCarrier, lastStat.TxCarrier, interval)
+			queue <- buildMetric(ifaceName, "tx compressed", actualStat.TxCompressed, lastStat.TxCompressed, interval)
+
+		}
 	}
 }
 

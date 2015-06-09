@@ -3,6 +3,7 @@ package goshin
 import (
 	"fmt"
 	"github.com/bigdatadev/goryman"
+	"github.com/tjgq/broadcast"
 	"strings"
 	"time"
 )
@@ -63,31 +64,33 @@ func (g *Goshin) Start() {
 
 	ticker := time.NewTicker(time.Second * time.Duration(g.Interval))
 
+	b := broadcast.New(10)
+
+	if g.Checks["cpu"] {
+		go cputime.Collect(collectQueue, b.Listen())
+	}
+	if g.Checks["memory"] {
+		go memoryusage.Collect(collectQueue, b.Listen())
+	}
+	if g.Checks["load"] {
+		go loadaverage.Collect(collectQueue, b.Listen())
+	}
+	if g.Checks["net"] {
+		go netstats.Collect(collectQueue, b.Listen())
+	}
+	if g.Checks["disk"] {
+		go diskspace.Collect(collectQueue, b.Listen())
+	}
+	if g.Checks["diskstats"] {
+		go diskstats.Collect(collectQueue, b.Listen())
+	}
+
 	for t := range ticker.C {
 		fmt.Println("Tick at ", t)
+		b.Send(t)
 
-		// TODO find a better  way
-		// to check if a collector type
-		// is active
-		if g.Checks["cpu"] {
-			go cputime.Collect(collectQueue)
-		}
-		if g.Checks["memory"] {
-			go memoryusage.Collect(collectQueue)
-		}
-		if g.Checks["load"] {
-			go loadaverage.Collect(collectQueue)
-		}
-		if g.Checks["net"] {
-			go netstats.Collect(collectQueue)
-		}
-		if g.Checks["disk"] {
-			go diskspace.Collect(collectQueue)
-		}
-		if g.Checks["diskstats"] {
-			go diskstats.Collect(collectQueue)
-		}
-
+		// TODO: move reporting outside
+		// of this loop
 		go g.Report(collectQueue)
 	}
 }
@@ -121,15 +124,19 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 	c := goryman.NewGorymanClient(g.Address)
 	err := c.Connect()
 
+	connected := true
+
 	if err != nil {
 		fmt.Println("Can not connect to host")
-	} else {
+		connected = false
+	}
 
-		more := true
+	more := true
 
-		for more {
-			select {
-			case metric := <-reportQueue:
+	for more {
+		select {
+		case metric := <-reportQueue:
+			if connected {
 				g.EnforceState(metric)
 				err := c.SendEvent(&goryman.Event{
 					Metric:      metric.Value,
@@ -143,9 +150,9 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 				if err != nil {
 					fmt.Println("something does wrong:", err)
 				}
-			default:
-				more = false
 			}
+		default:
+			more = false
 		}
 	}
 

@@ -3,6 +3,7 @@ package goshin
 import "fmt"
 import "os/exec"
 import linuxproc "github.com/c9s/goprocinfo/linux"
+import "github.com/tjgq/broadcast"
 
 type MemoryUsage struct {
 	total, free, buffers, cache, swap uint64
@@ -25,15 +26,18 @@ func (m *MemoryUsage) Ranking() string {
 	return fmt.Sprint("used\n\n", s)
 }
 
-func (m *MemoryUsage) Collect(queue chan *Metric) {
+func (m *MemoryUsage) Collect(queue chan *Metric, listener *broadcast.Listener) {
+	for {
+		<-listener.Ch
 
-	metric := NewMetric()
+		metric := NewMetric()
 
-	metric.Service = "memory"
-	metric.Value = m.Usage()
-	metric.Description = m.Ranking()
+		metric.Service = "memory"
+		metric.Value = m.Usage()
+		metric.Description = m.Ranking()
 
-	queue <- metric
+		queue <- metric
+	}
 }
 
 func NewMemoryUsage() *MemoryUsage {
