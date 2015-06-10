@@ -78,7 +78,7 @@ func (n *NetStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
 		// first run or
 		// no interface
 		if len(n.last) == 0 {
-			return
+			continue
 		}
 
 		interval := float64(n.actualTime.Sub(n.lastTime).Seconds())

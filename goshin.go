@@ -10,6 +10,7 @@ import (
 )
 
 
+
 var logger, _ = syslog.New(syslog.LOG_DAEMON, "goshin")
 
 type Metric struct {
@@ -97,13 +98,10 @@ func (g *Goshin) Start() {
 		go diskstats.Collect(collectQueue, b.Listen())
 	}
 
-	for t := range ticker.C {
-                //logger.Debug("send collection event")
-		b.Send(t)
+	go g.Report(collectQueue)
 
-		// TODO: move reporting outside
-		// of this loop
-		go g.Report(collectQueue)
+	for t := range ticker.C {
+		b.Send(t)
 	}
 }
 
@@ -132,41 +130,45 @@ func (g *Goshin) EnforceState(metric *Metric) {
 }
 
 func (g *Goshin) Report(reportQueue chan *Metric) {
+        c := goryman.NewGorymanClient(g.Address)
+        defer c.Close()
 
-	c := goryman.NewGorymanClient(g.Address)
-	err := c.Connect()
+        connected := false
+        var connError error
 
-	connected := true
+	for {
+                if connected == false {
+                        connError = c.Connect()
+                }
 
-	if err != nil {
-                logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
-		connected = false
-	}
+                if (connError != nil) {
+                        logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
+                        c.Close()
+                        connected = false
+                } else {
+                        connected = true
+                }
 
-	more := true
+                metric := <-reportQueue
 
-	for more {
-		select {
-		case metric := <-reportQueue:
-			if connected {
-				g.EnforceState(metric)
-				err := c.SendEvent(&goryman.Event{
-					Metric:      metric.Value,
-					Ttl:         g.Ttl,
-					Service:     metric.Service,
-					Description: metric.Description,
-					Tags:        g.Tag,
-					Host:        g.EventHost,
-					State:       metric.State})
+                if connected {
+                        g.EnforceState(metric)
+                        connError = c.SendEvent(&goryman.Event{
+                                Metric:      metric.Value,
+                                Ttl:         g.Ttl,
+                                Service:     metric.Service,
+                                Description: metric.Description,
+                                Tags:        g.Tag,
+                                Host:        g.EventHost,
+                                State:       metric.State})
 
-				if err != nil {
-                                        logger.Err(fmt.Sprintf("error : %s", err))
-				}
-			}
-		default:
-			more = false
-		}
-	}
+                        if connError != nil {
+                                logger.Err(fmt.Sprintf("error : %s", connError))
+                                c.Close()
+                                connected = false
+                        }
+                }
 
-	defer c.Close()
+                metric = nil
+        }
 }
