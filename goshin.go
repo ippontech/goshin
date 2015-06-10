@@ -6,7 +6,11 @@ import (
 	"github.com/tjgq/broadcast"
 	"strings"
 	"time"
+        "log/syslog"
 )
+
+
+var logger, _ = syslog.New(syslog.LOG_DAEMON, "goshin")
 
 type Metric struct {
 	Service, Description, State string
@@ -46,7 +50,7 @@ func NewGoshin() *Goshin {
 }
 
 func (g *Goshin) Start() {
-	fmt.Print("Gare aux goriiillllleeeees!\n\n\n")
+        defer logger.Close()
 
 	cputime := NewCPUTime()
 	memoryusage := NewMemoryUsage()
@@ -55,7 +59,9 @@ func (g *Goshin) Start() {
 	diskspace := NewDiskSpace()
 	diskstats := NewDiskStats(g.Devices, g.IgnoreDevices)
 
-	fmt.Printf("Goshin will report each %d seconds\n", g.Interval)
+
+        logger.Info(fmt.Sprintf("starting Goshin : will report each %d seconds", g.Interval))
+
 
 	// channel size has to be large enough
 	// to allow Goshin send all metrics to Riemann
@@ -67,26 +73,32 @@ func (g *Goshin) Start() {
 	b := broadcast.New(10)
 
 	if g.Checks["cpu"] {
+                logger.Debug("collector 'cpu' is enabled")
 		go cputime.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["memory"] {
+                logger.Debug("collector 'memory' is enabled")
 		go memoryusage.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["load"] {
+                logger.Debug("collector 'load' is enabled")
 		go loadaverage.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["net"] {
+                logger.Debug("collector 'net' is enabled")
 		go netstats.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["disk"] {
+                logger.Debug("collector 'disk' is enabled")
 		go diskspace.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["diskstats"] {
+                logger.Debug("collector 'diskstats' is enabled")
 		go diskstats.Collect(collectQueue, b.Listen())
 	}
 
 	for t := range ticker.C {
-		fmt.Println("Tick at ", t)
+                //logger.Debug("send collection event")
 		b.Send(t)
 
 		// TODO: move reporting outside
@@ -127,7 +139,7 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 	connected := true
 
 	if err != nil {
-		fmt.Println("Can not connect to host")
+                logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
 		connected = false
 	}
 
@@ -148,7 +160,7 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 					State:       metric.State})
 
 				if err != nil {
-					fmt.Println("something does wrong:", err)
+                                        logger.Err(fmt.Sprintf("error : %s", err))
 				}
 			}
 		default:
