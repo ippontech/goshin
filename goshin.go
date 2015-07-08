@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"github.com/bigdatadev/goryman"
 	"github.com/tjgq/broadcast"
+	"log/syslog"
 	"strings"
 	"time"
-        "log/syslog"
 )
-
-
 
 var logger, _ = syslog.New(syslog.LOG_DAEMON, "goshin")
 
@@ -51,7 +49,7 @@ func NewGoshin() *Goshin {
 }
 
 func (g *Goshin) Start() {
-        defer logger.Close()
+	defer logger.Close()
 
 	cputime := NewCPUTime()
 	memoryusage := NewMemoryUsage()
@@ -60,9 +58,7 @@ func (g *Goshin) Start() {
 	diskspace := NewDiskSpace()
 	diskstats := NewDiskStats(g.Devices, g.IgnoreDevices)
 
-
-        logger.Info(fmt.Sprintf("starting Goshin : will report each %d seconds", g.Interval))
-
+	logger.Info(fmt.Sprintf("starting Goshin : will report each %d seconds", g.Interval))
 
 	// channel size has to be large enough
 	// to allow Goshin send all metrics to Riemann
@@ -74,27 +70,27 @@ func (g *Goshin) Start() {
 	b := broadcast.New(10)
 
 	if g.Checks["cpu"] {
-                logger.Debug("collector 'cpu' is enabled")
+		logger.Debug("collector 'cpu' is enabled")
 		go cputime.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["memory"] {
-                logger.Debug("collector 'memory' is enabled")
+		logger.Debug("collector 'memory' is enabled")
 		go memoryusage.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["load"] {
-                logger.Debug("collector 'load' is enabled")
+		logger.Debug("collector 'load' is enabled")
 		go loadaverage.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["net"] {
-                logger.Debug("collector 'net' is enabled")
+		logger.Debug("collector 'net' is enabled")
 		go netstats.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["disk"] {
-                logger.Debug("collector 'disk' is enabled")
+		logger.Debug("collector 'disk' is enabled")
 		go diskspace.Collect(collectQueue, b.Listen())
 	}
 	if g.Checks["diskstats"] {
-                logger.Debug("collector 'diskstats' is enabled")
+		logger.Debug("collector 'diskstats' is enabled")
 		go diskstats.Collect(collectQueue, b.Listen())
 	}
 
@@ -130,45 +126,45 @@ func (g *Goshin) EnforceState(metric *Metric) {
 }
 
 func (g *Goshin) Report(reportQueue chan *Metric) {
-        c := goryman.NewGorymanClient(g.Address)
-        defer c.Close()
+	c := goryman.NewGorymanClient(g.Address)
+	defer c.Close()
 
-        connected := false
-        var connError error
+	connected := false
+	var connError error
 
 	for {
-                if connected == false {
-                        connError = c.Connect()
-                }
+		if connected == false {
+			connError = c.Connect()
+		}
 
-                if (connError != nil) {
-                        logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
-                        c.Close()
-                        connected = false
-                } else {
-                        connected = true
-                }
+		if connError != nil {
+			logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
+			c.Close()
+			connected = false
+		} else {
+			connected = true
+		}
 
-                metric := <-reportQueue
+		metric := <-reportQueue
 
-                if connected {
-                        g.EnforceState(metric)
-                        connError = c.SendEvent(&goryman.Event{
-                                Metric:      metric.Value,
-                                Ttl:         g.Ttl,
-                                Service:     metric.Service,
-                                Description: metric.Description,
-                                Tags:        g.Tag,
-                                Host:        g.EventHost,
-                                State:       metric.State})
+		if connected {
+			g.EnforceState(metric)
+			connError = c.SendEvent(&goryman.Event{
+				Metric:      metric.Value,
+				Ttl:         g.Ttl,
+				Service:     metric.Service,
+				Description: metric.Description,
+				Tags:        g.Tag,
+				Host:        g.EventHost,
+				State:       metric.State})
 
-                        if connError != nil {
-                                logger.Err(fmt.Sprintf("error : %s", connError))
-                                c.Close()
-                                connected = false
-                        }
-                }
+			if connError != nil {
+				logger.Err(fmt.Sprintf("error : %s", connError))
+				c.Close()
+				connected = false
+			}
+		}
 
-                metric = nil
-        }
+		metric = nil
+	}
 }
