@@ -43,20 +43,14 @@ func (n *DiskStats) Store() {
 
 }
 
-func (n *DiskStats) buildMetric(device string, name string, actual uint64, last uint64, interval float64) *Metric {
+func (n *DiskStats) buildMetric(device string, name string, value float64) *Metric {
 	metric := NewMetric()
 	metric.Service = fmt.Sprintf("diskstats %s %s", device, name)
+        metric.Value   = value
 
-	diff := int64(actual - last)
-
-	if diff > 0 {
-		metric.Value = float64(diff) / interval
-	} else {
-		metric.Value = float64(-diff) / interval
-	}
-
-	return metric
+        return metric
 }
+
 
 func (n *DiskStats) candidateDevices() []string {
 
@@ -80,7 +74,6 @@ func (n *DiskStats) candidateDevices() []string {
 
 	return keys
 }
-
 func (n *DiskStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
 	for {
 		<-listener.Ch
@@ -100,18 +93,29 @@ func (n *DiskStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
 			lastStat := n.last[deviceName]
 			actualStat := n.actual[deviceName]
 
-			queue <- n.buildMetric(deviceName, "reads reqs", actualStat.ReadIOs, lastStat.ReadIOs, interval)
-			queue <- n.buildMetric(deviceName, "reads merged", actualStat.ReadMerges, lastStat.ReadMerges, interval)
-			queue <- n.buildMetric(deviceName, "reads sector", actualStat.ReadSectors, lastStat.ReadSectors, interval)
-			queue <- n.buildMetric(deviceName, "reads time", actualStat.ReadTicks, lastStat.ReadTicks, interval)
-			queue <- n.buildMetric(deviceName, "writes reqs", actualStat.WriteIOs, lastStat.WriteIOs, interval)
-			queue <- n.buildMetric(deviceName, "writes merged", actualStat.WriteMerges, lastStat.WriteMerges, interval)
-			queue <- n.buildMetric(deviceName, "writes sector", actualStat.WriteSectors, lastStat.WriteSectors, interval)
-			queue <- n.buildMetric(deviceName, "writes time", actualStat.WriteTicks, lastStat.WriteTicks, interval)
-			queue <- n.buildMetric(deviceName, "io reqs", actualStat.InFlight, lastStat.InFlight, interval)
-			queue <- n.buildMetric(deviceName, "io time", actualStat.IOTicks, lastStat.IOTicks, interval)
-			queue <- n.buildMetric(deviceName, "io weighted", actualStat.TimeInQueue, lastStat.TimeInQueue, interval)
+			queue <- n.buildMetric(deviceName, "reads reqs", computeRate(actualStat.ReadIOs, lastStat.ReadIOs, interval))
+			queue <- n.buildMetric(deviceName, "reads merged", computeRate(actualStat.ReadMerges, lastStat.ReadMerges, interval))
+			queue <- n.buildMetric(deviceName, "reads sector", computeRate(actualStat.ReadSectors, lastStat.ReadSectors, interval))
+			queue <- n.buildMetric(deviceName, "reads time", computeRate(actualStat.ReadTicks, lastStat.ReadTicks, interval))
+			queue <- n.buildMetric(deviceName, "writes reqs", computeRate(actualStat.WriteIOs, lastStat.WriteIOs, interval))
+			queue <- n.buildMetric(deviceName, "writes merged", computeRate(actualStat.WriteMerges, lastStat.WriteMerges, interval))
+			queue <- n.buildMetric(deviceName, "writes sector", computeRate(actualStat.WriteSectors, lastStat.WriteSectors, interval))
+			queue <- n.buildMetric(deviceName, "writes time", computeRate(actualStat.WriteTicks, lastStat.WriteTicks, interval))
+                        queue <- n.buildMetric(deviceName, "io reqs", float64(actualStat.InFlight))
+			queue <- n.buildMetric(deviceName, "io time", computeRate(actualStat.IOTicks, lastStat.IOTicks, interval))
+			queue <- n.buildMetric(deviceName, "io weighted", computeRate(actualStat.TimeInQueue, lastStat.TimeInQueue, interval))
 		}
+	}
+}
+
+
+func computeRate(actual uint64, last uint64, interval float64) float64 {
+	diff := int64(actual - last)
+
+	if diff > 0 {
+		return float64(diff) / interval
+	} else {
+		return float64(-diff) / interval
 	}
 }
 
