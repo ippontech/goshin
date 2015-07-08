@@ -47,8 +47,13 @@ func (n *DiskStats) buildMetric(device string, name string, actual uint64, last 
 	metric := NewMetric()
 	metric.Service = fmt.Sprintf("diskstats %s %s", device, name)
 
-	diff := actual - last
-	metric.Value = float64(diff) / interval
+	diff := int64(actual - last)
+
+	if diff > 0 {
+		metric.Value = float64(diff) / interval
+	} else {
+		metric.Value = float64(-diff) / interval
+	}
 
 	return metric
 }
