@@ -139,7 +139,6 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 
 		if connError != nil {
 			logger.Err(fmt.Sprintf("error : can not connect to host %s", g.Address))
-			c.Close()
 			connected = false
 		} else {
 			connected = true
