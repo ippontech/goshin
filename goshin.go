@@ -2,6 +2,7 @@ package goshin
 
 import (
 	"fmt"
+        "math"
 	"github.com/bigdatadev/goryman"
 	"github.com/tjgq/broadcast"
 	"log/syslog"
@@ -107,12 +108,16 @@ func (g *Goshin) EnforceState(metric *Metric) {
 	// cpu => cpu
 	service := strings.Split(metric.Service, " ")[0]
 
+        value := metric.Value
+        typeofvalue := fmt.Sprintf("%T", value)
+        if strings.HasPrefix(typeofvalue, "float") {
+                metric.Value = RoundPlus(value.(float64), 2)
+        }
+
 	threshold, present := g.Thresholds[service]
 
 	if present {
-		value := metric.Value
 
-		// TODO threshold checking
 		// only for int and float type
 		switch {
 		case value.(float64) > threshold.Critical:
@@ -123,7 +128,10 @@ func (g *Goshin) EnforceState(metric *Metric) {
 			metric.State = "ok"
 		}
 	}
+
 }
+
+
 
 func (g *Goshin) Report(reportQueue chan *Metric) {
 	c := goryman.NewGorymanClient(g.Address)
@@ -166,4 +174,15 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 
 		metric = nil
 	}
+}
+
+
+// https://gist.github.com/DavidVaini/10308388#gistcomment-1391788
+func Round(f float64) float64 {
+        return math.Floor(f + .5)
+}
+
+func RoundPlus(f float64, places int) (float64) {
+        shift := math.Pow(10, float64(places))
+        return Round(f * shift) / shift;
 }
