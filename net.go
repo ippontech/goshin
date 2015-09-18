@@ -94,7 +94,7 @@ func (n *NetStats) Collect(queue chan *Metric, listener *broadcast.Listener) {
 			queue <- buildMetric(ifaceName, "rx drop", actualStat.RxDrop, lastStat.RxDrop, interval)
 			queue <- buildMetric(ifaceName, "rx frame", actualStat.RxFrame, lastStat.RxFrame, interval)
 			queue <- buildMetric(ifaceName, "rx compressed", actualStat.RxCompressed, lastStat.RxCompressed, interval)
-			queue <- buildMetric(ifaceName, "rx muticast", actualStat.RxMulticast, lastStat.RxMulticast, interval)
+			queue <- buildMetric(ifaceName, "rx multicast", actualStat.RxMulticast, lastStat.RxMulticast, interval)
 
 			queue <- buildMetric(ifaceName, "tx bytes", actualStat.TxBytes, lastStat.TxBytes, interval)
 			queue <- buildMetric(ifaceName, "tx packets", actualStat.TxPackets, lastStat.TxPackets, interval)
