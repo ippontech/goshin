@@ -19,7 +19,7 @@ func (m *MemoryUsage) Usage() float64 {
 }
 
 func (m *MemoryUsage) Ranking() string {
-	out, _ := exec.Command("sh", "-c", "ps -eo pmem,pid,comm | sort -nrb -k1 | head -10").Output()
+	out, _ := exec.Command("sh", "-c", "ps -eo pmem,pid,comm | sed 1d | sort -nrb -k1 | head -10").Output()
 
 	s := string(out[:])
 
