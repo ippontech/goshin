@@ -1,6 +1,6 @@
 package main
 
-import "github.com/pariviere/goshin"
+import "github.com/ippontech/goshin"
 import "flag"
 import "fmt"
 import "os"
