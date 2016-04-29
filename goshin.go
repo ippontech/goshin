@@ -2,10 +2,10 @@ package goshin
 
 import (
 	"fmt"
-        "math"
-	"github.com/bigdatadev/goryman"
+	"github.com/amir/raidman"
 	"github.com/tjgq/broadcast"
 	"log/syslog"
+	"math"
 	"strings"
 	"time"
 )
@@ -108,11 +108,11 @@ func (g *Goshin) EnforceState(metric *Metric) {
 	// cpu => cpu
 	service := strings.Split(metric.Service, " ")[0]
 
-        value := metric.Value
-        typeofvalue := fmt.Sprintf("%T", value)
-        if strings.HasPrefix(typeofvalue, "float") {
-                metric.Value = RoundPlus(value.(float64), 2)
-        }
+	value := metric.Value
+	typeofvalue := fmt.Sprintf("%T", value)
+	if strings.HasPrefix(typeofvalue, "float") {
+		metric.Value = RoundPlus(value.(float64), 2)
+	}
 
 	threshold, present := g.Thresholds[service]
 
@@ -131,18 +131,15 @@ func (g *Goshin) EnforceState(metric *Metric) {
 
 }
 
-
-
 func (g *Goshin) Report(reportQueue chan *Metric) {
-	c := goryman.NewGorymanClient(g.Address)
-	defer c.Close()
 
 	connected := false
 	var connError error
+	var c *raidman.Client
 
 	for {
 		if connected == false {
-			connError = c.Connect()
+			c, connError = raidman.DialWithTimeout("tcp", g.Address, time.Duration(10)*time.Second)
 		}
 
 		if connError != nil {
@@ -156,7 +153,7 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 
 		if connected {
 			g.EnforceState(metric)
-			connError = c.SendEvent(&goryman.Event{
+			connError = c.Send(&raidman.Event{
 				Metric:      metric.Value,
 				Ttl:         g.Ttl,
 				Service:     metric.Service,
@@ -176,13 +173,12 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 	}
 }
 
-
 // https://gist.github.com/DavidVaini/10308388#gistcomment-1391788
 func Round(f float64) float64 {
-        return math.Floor(f + .5)
+	return math.Floor(f + .5)
 }
 
-func RoundPlus(f float64, places int) (float64) {
-        shift := math.Pow(10, float64(places))
-        return Round(f * shift) / shift;
+func RoundPlus(f float64, places int) float64 {
+	shift := math.Pow(10, float64(places))
+	return Round(f*shift) / shift
 }
