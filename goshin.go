@@ -41,6 +41,8 @@ type Goshin struct {
 	IgnoreDevices map[string]bool
 	Thresholds    map[string]*Threshold
 	Checks        map[string]bool
+	ConnectionType string
+	Timeout int
 }
 
 func NewGoshin() *Goshin {
@@ -139,7 +141,7 @@ func (g *Goshin) Report(reportQueue chan *Metric) {
 
 	for {
 		if connected == false {
-			c, connError = raidman.DialWithTimeout("tcp", g.Address, time.Duration(10)*time.Second)
+			c, connError = raidman.DialWithTimeout(g.ConnectionType, g.Address, time.Duration(g.Timeout) * time.Second)
 		}
 
 		if connError != nil {

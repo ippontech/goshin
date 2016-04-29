@@ -29,6 +29,8 @@ var (
 	memoryWarningPtr  = flag.Float64("memory-warning", 0.85, "Memory warning threshold (fraction of RAM)")
 	memoryCriticalPtr = flag.Float64("memory-critical", 0.95, "Memory critical threshold (fraction of RAM)")
 	checksPtr         = flag.String("checks", "cpu,load,memory,net,disk", "A list of checks to run")
+	connectionType    = flag.String("connection-proto", "udp", "A connection protocol to Riemann server ")
+	connectionTimeout    = flag.Int("connection-timeout", 5, "A connection timeout to Riemann server")
 )
 
 func main() {
@@ -40,6 +42,8 @@ func main() {
 	app.Address = fmt.Sprintf("%s:%d", *hostPtr, *portPtr)
 	app.EventHost = *eventHostPtr
 	app.Interval = *intervalPtr
+	app.ConnectionType = *connectionType
+	app.Timeout = *connectionTimeout
 
 	if len(*tagPtr) != 0 {
 		app.Tag = strings.Split(*tagPtr, ",")
