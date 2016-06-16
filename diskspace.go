@@ -35,7 +35,7 @@ func (m *DiskSpace) Collect(queue chan *Metric, listener *broadcast.Listener) {
 			metric := NewMetric()
 			metric.Service = fmt.Sprint("disk ", fields[5])
 			metric.Value = capacity / 100
-			metric.Description = fmt.Sprint(capacity/100, "% used")
+			metric.Description = fmt.Sprint(capacity, "% used")
 
 			queue <- metric
 		}
